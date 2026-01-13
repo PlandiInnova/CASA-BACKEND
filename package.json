@@ -1,13 +1,30 @@
 {
   "name": "casa-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend API desarrollado con Node.js y Express para el sistema CASA. Incluye comunicación en tiempo real mediante Socket.IO, conexión a base de datos MySQL y un sistema robusto de manejo de errores.",
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "version:patch": "npm version patch -m \"Bump version to %s\"",
+    "version:minor": "npm version minor -m \"Bump version to %s\"",
+    "version:major": "npm version major -m \"Bump version to %s\"",
+    "release:tag": "git push origin main --follow-tags",
+    "prepack": "echo 'Preparing package for release...'"
   },
-  "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AntonioJTM/CASA-BACKEND.git"
+  },
+  "keywords": [
+    "express",
+    "api",
+    "backend",
+    "socket.io",
+    "mysql",
+    "rest",
+    "casa"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
