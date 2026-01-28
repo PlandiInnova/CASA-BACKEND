@@ -7,6 +7,7 @@ const dbMiddleware = require('./middlewares/dbMiddleware');
 const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const socketHandler = require('./middlewares/sockets');
@@ -168,17 +169,26 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(apiLimiter);
 
-const folderPath = path.join(__dirname, '../../../../var/www/html');
-app.use('/FILES/static', express.static(folderPath));
+const folderPath = process.env.NODE_ENV === 'production'
+    ? (process.env.UPLOAD_BASE_PATH || '/var/www/html')
+    : path.resolve(__dirname, '../var/www/html');
+console.log(`[INFO] Intentando servir archivos desde: ${folderPath}`);
+
+if (fs.existsSync(folderPath)) {
+    console.log('[ÉXITO] La carpeta existe. Configurando middleware estático.');
+    app.use('/FILES/static', express.static(folderPath));
+} else {
+    console.error('[ERROR] La carpeta NO existe. Revisa la ruta o los permisos.');
+}
 
 const login = require('./routes/routes-login');
-app.use('/casa/v1/login/', dbMiddleware, login());
+app.use('/casa/login/', dbMiddleware, login());
 
 const users = require('./routes/routes-users');
-app.use('/casa/v1/users/', dbMiddleware, users());
+app.use('/casa/users/', dbMiddleware, users());
 
 const admin = require('./routes/routes-admin');
-app.use('/casa/v1/admin/', dbMiddleware, admin());
+app.use('/casa/admin/', dbMiddleware, admin());
 
 // Middleware catch-all para rutas no encontradas (debe ir después de todas las rutas)
 app.use((req, res) => {
