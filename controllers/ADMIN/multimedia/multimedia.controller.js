@@ -16,7 +16,6 @@ exports.getMultimedia = async (req, res) => {
             return res.status(400).json({ error: 'Parámetro subtipo inválido' });
         }
 
-        // Siempre usar ObtenerMultimedia con los 3 parámetros (tipo obligatorio, grado y subtipo opcionales)
         req.db.query(
             'CALL ObtenerMultimedia(?, ?, ?)',
             [tipo, grado, subtipo],

@@ -3,8 +3,7 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
-// Ruta base para guardar archivos
-// En desarrollo: ruta relativa, en producción: ruta absoluta desde .env
+
 const BASE_UPLOAD_PATH = process.env.NODE_ENV === 'production' 
     ? (process.env.UPLOAD_BASE_PATH || '/var/www/html')
     : path.resolve(__dirname, '../../../../var/www/html');
@@ -51,8 +50,7 @@ const fileFilter = (req, file, cb) => {
 const uploadFile = multer({
     storage: storage,
     limits: { 
-        fileSize: 200 * 1024 * 1024, // 200MB por defecto
-        // Límites específicos por tipo
+        fileSize: 200 * 1024 * 1024,
     },
     fileFilter: fileFilter
 }).single('archivo');
@@ -339,15 +337,7 @@ exports.handleUpload = async (req, res) => {
                     });
                 }
                 
-                // Prioridad de miniatura:
-                // 1. Nuevo archivo de imagen subido
-                // 2. Miniatura preservada en req.body.image (cuando se cambia solo el video)
-                // 3. Solicitud de eliminar miniatura
-                // 4. Miniatura existente en modo edición
-                // 5. Miniatura por defecto
-                
                 if (hasNewImageFile) {
-                    // Caso 1: Se subió un nuevo archivo de imagen
                     const fullPath = imageFile.path;
                     const normalizedNewPath = extractRelativePath(fullPath);
                     iconPath = normalizedNewPath;
@@ -363,7 +353,6 @@ exports.handleUpload = async (req, res) => {
                     }
                 }
                 else if (req.body.image && req.body.image.trim() !== '') {
-                    // Caso 2: Miniatura preservada (ruta/URL) - PRIORIDAD ALTA cuando se cambia solo el video
                     const imageValue = cleanMetadata(req.body.image);
                     console.log('  - imageValue (después de cleanMetadata):', imageValue);
                     
@@ -393,12 +382,9 @@ exports.handleUpload = async (req, res) => {
                     }
                 }
                 else if (removeThumbnail) {
-                    // Caso 3: Solicitud de eliminar miniatura
                     if (existingIconPath && existingIconPath.includes('i.ytimg.com')) {
-                        // Si es YouTube, mantener la miniatura de YouTube (no se puede eliminar)
                         iconPath = existingIconPath;
                     } else if (metadata.includes('youtube.com') || metadata.includes('youtu.be')) {
-                        // Si se elimina miniatura personalizada de un video de YouTube, usar la de YouTube por defecto
                         const videoIdMatch = metadata.match(/[?&]v=([^&]+)/) || metadata.match(/youtu\.be\/([^?]+)/);
                         if (videoIdMatch && videoIdMatch[1]) {
                             iconPath = `https://i.ytimg.com/vi/${videoIdMatch[1]}/hqdefault.jpg`;
@@ -406,17 +392,14 @@ exports.handleUpload = async (req, res) => {
                             iconPath = '/multimedia/thumbnails/default-video-thumbnail.jpg';
                         }
                         
-                        // Eliminar miniatura personalizada anterior si existe (no la por defecto)
                         if (isEdit && existingIconPath && 
                             !existingIconPath.includes('i.ytimg.com') &&
                             !isDefaultThumbnail(existingIconPath)) {
                             normalizeAndDeleteOldFile(existingIconPath, baseDir);
                         }
                     } else {
-                        // Para archivos de video, si se elimina la miniatura personalizada, usar la por defecto
                         iconPath = '/multimedia/thumbnails/default-video-thumbnail.jpg';
                         
-                        // Eliminar miniatura personalizada anterior si existe (no la por defecto)
                         if (isEdit && existingIconPath && 
                             !existingIconPath.includes('i.ytimg.com') &&
                             !isDefaultThumbnail(existingIconPath)) {
@@ -425,11 +408,9 @@ exports.handleUpload = async (req, res) => {
                     }
                 } 
                 else if (isEdit && existingIconPath) {
-                    // Caso 4: En modo edición, si hay miniatura existente, usarla
                     if (existingIconPath.includes('i.ytimg.com')) {
                         iconPath = existingIconPath;
                     } else if (isDefaultThumbnail(existingIconPath)) {
-                        // Mantener la miniatura por defecto intacta
                         iconPath = '/multimedia/thumbnails/default-video-thumbnail.jpg';
                     } else {
                         iconPath = extractRelativePath(existingIconPath);
@@ -437,9 +418,7 @@ exports.handleUpload = async (req, res) => {
                     console.log('✅ Usando miniatura existente en modo edición:', iconPath);
                 } 
                 else {
-                    // Caso 5: Si no hay miniatura proporcionada, usar la por defecto
                     if (metadata.includes('youtube.com') || metadata.includes('youtu.be')) {
-                        // Para YouTube, usar miniatura por defecto de YouTube
                         const videoIdMatch = metadata.match(/[?&]v=([^&]+)/) || metadata.match(/youtu\.be\/([^?]+)/);
                         if (videoIdMatch && videoIdMatch[1]) {
                             iconPath = `https://i.ytimg.com/vi/${videoIdMatch[1]}/hqdefault.jpg`;
@@ -447,7 +426,6 @@ exports.handleUpload = async (req, res) => {
                             iconPath = '/multimedia/thumbnails/default-video-thumbnail.jpg';
                         }
                     } else {
-                        // Para archivos nuevos sin miniatura, usar miniatura por defecto
                         iconPath = '/multimedia/thumbnails/default-video-thumbnail.jpg';
                     }
                     console.log('⚠️ Usando miniatura por defecto:', iconPath);
@@ -456,7 +434,6 @@ exports.handleUpload = async (req, res) => {
                 break;
         }
 
-        // Limpiar metadata antes de normalizar (por si viene con texto adicional de Angular)
         let cleanedMetadata = cleanMetadata(metadata);
         let normalizedMetadata = cleanedMetadata;
         if (cleanedMetadata && !cleanedMetadata.includes('youtube.com') && !cleanedMetadata.includes('youtu.be')) {
@@ -503,7 +480,6 @@ exports.handleUpload = async (req, res) => {
         console.log('🔍 DEBUG - Después de normalización final:');
         console.log('  - normalizedIconPath:', normalizedIconPath);
         
-        // Solo Videos requiere miniatura
         if (req.body.type === 'Videos' && (!normalizedIconPath || normalizedIconPath.trim() === '')) {
             console.error('❌ ERROR: iconPath está vacío para un video');
             return res.status(400).json({
@@ -512,7 +488,6 @@ exports.handleUpload = async (req, res) => {
             });
         }
         
-        // Para otros tipos (Word, Excel, PDF, Audios), iconPath puede estar vacío
         if (req.body.type !== 'Videos') {
             normalizedIconPath = normalizedIconPath || '';
         }
@@ -615,11 +590,9 @@ exports.handleUpload = async (req, res) => {
 function cleanMetadata(value) {
     if (!value || typeof value !== 'string') return value;
     
-    // Eliminar texto adicional de Angular sobre seguridad XSS
     const angularSecurityPattern = /\s*\(see\s+https?:\/\/[^\)]+\)/gi;
     let cleaned = value.replace(angularSecurityPattern, '');
     
-    // Eliminar espacios al inicio y final
     cleaned = cleaned.trim();
     
     return cleaned;
@@ -677,7 +650,6 @@ function normalizeAndDeleteOldFile(oldPath, baseDir) {
         return;
     }
     
-    // No eliminar nunca la miniatura por defecto
     if (isDefaultThumbnail(oldPath)) {
         console.log('⚠️ Intento de eliminar miniatura por defecto bloqueado:', oldPath);
         return;
@@ -736,19 +708,16 @@ exports.handleDelete = async (req, res) => {
         const videoPath = multimediaInfo.MUL_ENLACE || '';
         const thumbnailPath = multimediaInfo.MUL_IMAGEN || '';
 
-        // Validar si el video es un archivo (no URL de YouTube)
         const isVideoFile = videoPath && 
                            !videoPath.includes('youtube.com') && 
                            !videoPath.includes('youtu.be') &&
                            (videoPath.includes('/multimedia/') || videoPath.startsWith('/'));
 
-        // Validar si tiene imagen en servidor (no de YouTube ni por defecto)
         const hasServerThumbnail = thumbnailPath && 
                                   !thumbnailPath.includes('i.ytimg.com') && 
                                   !isDefaultThumbnail(thumbnailPath) &&
                                   (thumbnailPath.includes('/multimedia/') || thumbnailPath.startsWith('/'));
 
-        // Eliminar archivo de video si es un archivo
         if (isVideoFile) {
             const normalizedVideoPath = extractRelativePath(videoPath);
             if (normalizedVideoPath) {
@@ -772,7 +741,6 @@ exports.handleDelete = async (req, res) => {
             }
         }
 
-        // Eliminar miniatura si es del servidor
         if (hasServerThumbnail) {
             const normalizedThumbnailPath = extractRelativePath(thumbnailPath);
             if (normalizedThumbnailPath) {
@@ -796,7 +764,6 @@ exports.handleDelete = async (req, res) => {
             }
         }
 
-        // Eliminar registro de la base de datos
         const deleteResult = await new Promise((resolve, reject) => {
             req.db.query(
                 'DELETE FROM CAS_MULTIMEDIA WHERE MUL_ID = ?',

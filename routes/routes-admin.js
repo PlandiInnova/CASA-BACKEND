@@ -6,18 +6,22 @@ const multimedia = require('../controllers/ADMIN/multimedia/multimedia.controlle
 const uploadController = require('../controllers/ADMIN/multimedia/upload.controller');
 const uploadProd = require('../controllers/ADMIN/multimedia/uploadprod.controllers');
 const { getProductos, updateProducto, addFilesToProducto, deleteFileFromProducto }  = require('../controllers/ADMIN/multimedia/viewProductos.controller');
+const { deleteMultimedia } = require('../controllers/ADMIN/multimedia/deleteMultimedia.controller');
+const { deleteProducto } = require('../controllers/ADMIN/multimedia/deleteProducto.controller');
+const { updateStatus } = require('../controllers/ADMIN/multimedia/updateStatus.controller');
 
 module.exports = () => {
 
     router.get('/filter-grados', filtros.getGradosFilter);
     router.get('/filter-subtipos', filtros.getSubtipoFilter);
 
-    router.get('/multimedia', multimedia.getMultimedia);
+    router.get('/update-status', updateStatus);
 
     router.get('/productos', getProductos);
     router.put('/productos/:id', updateProducto);
     router.post('/productos/:id/archivos', addFilesToProducto);
     router.delete('/productos/:id/archivos/:filename', deleteFileFromProducto);
+    router.delete('/delete-productos/:id', deleteProducto);
 
     router.post('/upload',
         (req, res, next) => {
@@ -33,7 +37,6 @@ module.exports = () => {
             const tipoStr = tipo.toString();
             console.log('📤 Tipo de contenido recibido:', tipoStr);
     
-            // Tipos que manejan archivos simples (todos usan el campo 'archivo' en FormData)
             const fileTypes = ['Audios', 'Word', 'Excel', 'PDF'];
             
             if (fileTypes.includes(tipoStr)) {
@@ -63,6 +66,9 @@ module.exports = () => {
     );
 
     router.post('/upload-prod', uploadProd.uploadProd);
+
+    router.get('/multimedia', multimedia.getMultimedia);
+    router.delete('/delete-multimedia', deleteMultimedia);
 
     return router;
 }

@@ -21,7 +21,6 @@ module.exports = (io) => {
         socket.removeAllListeners('certificado-new');
         socket.removeAllListeners('certificado-delete');
 
-        // AGREGAR ESTOS NUEVOS LISTENERS PARA LICENCIAS
         socket.removeAllListeners('join-license-room');
         socket.removeAllListeners('leave-license-room');
 
@@ -87,7 +86,6 @@ module.exports = (io) => {
             io.to('global-room').emit('new-licences', data);
         });
 
-        // AGREGAR ESTOS NUEVOS EVENTOS PARA LICENCIAS
         socket.on('join-license-room', (sessionId) => {
             socket.join(sessionId);
             console.log(`Usuario ${socket.id} unido a la sala de licencias: ${sessionId}`);
@@ -101,7 +99,6 @@ module.exports = (io) => {
         socket.on('disconnect', (reason) => {
             console.log(`Usuario desconectado: ${socket.id} (${reason})`);
 
-            // Limpiar sesiones de licencias asociadas a este socket
             for (const [sessionId, socketId] of global.licenseSessions.entries()) {
                 if (socketId === socket.id) {
                     global.licenseSessions.delete(sessionId);
@@ -109,7 +106,6 @@ module.exports = (io) => {
                 }
             }
 
-            // Eliminar de activeSockets
             if (activeSockets.has(socket.id)) {
                 activeSockets.delete(socket.id);
                 console.log(`Socket ${socket.id} removido de activeSockets`);
@@ -117,7 +113,6 @@ module.exports = (io) => {
         });
     });
 
-    // Exportar funciones para usar en el controlador de licencias
     return {
         emitToLicenseRoom: (sessionId, event, data) => {
             io.to(sessionId).emit(event, data);
