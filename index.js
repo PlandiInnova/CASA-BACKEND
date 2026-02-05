@@ -176,6 +176,12 @@ app.use('/casa/users/', dbMiddleware, users());
 const admin = require('./routes/routes-admin');
 app.use('/casa/admin/', dbMiddleware, admin());
 
+const licencias = require('./routes/casa-web/routes-licencias');
+app.use('/casa/licencias/', dbMiddleware, licencias());
+
+const multimedia = require('./routes/casa-web/routes-multimedia');
+app.use('/casa/multimedia/', dbMiddleware, multimedia());
+
 app.use((req, res) => {
     res.status(404).json({
         success: false,
