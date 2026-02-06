@@ -167,12 +167,6 @@ if (fs.existsSync(folderPath)) {
     console.error('[ERROR] La carpeta NO existe. Revisa la ruta o los permisos.');
 }
 
-const login = require('./routes/routes-login');
-app.use('/casa/login/', dbMiddleware, login());
-
-const users = require('./routes/routes-users');
-app.use('/casa/users/', dbMiddleware, users());
-
 const admin = require('./routes/routes-admin');
 app.use('/casa/admin/', dbMiddleware, admin());
 
@@ -181,6 +175,10 @@ app.use('/casa/licencias/', dbMiddleware, licencias());
 
 const multimedia = require('./routes/casa-web/routes-multimedia');
 app.use('/casa/multimedia/', dbMiddleware, multimedia());
+
+// Rutas específicas para CASA-LAUNCHER
+const casaLauncherAuthRoutes = require('./routes/casa-launcher/routes-casa-launcher-auth');
+app.use('/casa/launcher/auth/', casaLauncherAuthRoutes());
 
 app.use((req, res) => {
     res.status(404).json({
