@@ -170,6 +170,9 @@ if (fs.existsSync(folderPath)) {
 const admin = require('./routes/routes-admin');
 app.use('/casa/admin/', dbMiddleware, admin());
 
+const login = require('./routes/routes-login');
+app.use('/casa/login/', dbMiddleware, login());
+
 const licencias = require('./routes/casa-web/routes-licencias');
 app.use('/casa/licencias/', dbMiddleware, licencias());
 

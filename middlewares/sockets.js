@@ -9,18 +9,10 @@ module.exports = (io) => {
         socket.join('global-room');
         console.log(`Usuario ${socket.id} unido a la sala global`);
 
+        // Limpiar listeners previos para evitar duplicados
         socket.removeAllListeners('client-upload-complete');
         socket.removeAllListeners('client-complete');
-        socket.removeAllListeners('tema-delete');
-        socket.removeAllListeners('producto-new');
-        socket.removeAllListeners('producto-upload');
-        socket.removeAllListeners('producto-delete');
-        socket.removeAllListeners('paquete-new');
-        socket.removeAllListeners('paquete-upload');
-        socket.removeAllListeners('paquete-delete');
-        socket.removeAllListeners('certificado-new');
-        socket.removeAllListeners('certificado-delete');
-
+        socket.removeAllListeners('data-delete');
         socket.removeAllListeners('join-license-room');
         socket.removeAllListeners('leave-license-room');
 
@@ -34,56 +26,10 @@ module.exports = (io) => {
             io.to('global-room').emit('new-issue', data);
         });
 
-        socket.on('tema-delete', (data) => {
-            console.log('nombre recibido:', data);
+
+        socket.on('data-delete', (data) => {
+            console.log('Eliminación recibida:', data);
             io.to('global-room').emit('new-delete', data);
-        });
-
-        socket.on('producto-new', (data) => {
-            console.log('producto recibido:', data);
-            io.to('global-room').emit('new-producto', data);
-        });
-
-        socket.on('producto-upload', (data) => {
-            console.log('Producto subido:', data);
-            io.to('global-room').emit('upload-producto', data);
-        });
-
-        socket.on('producto-delete', (data) => {
-            console.log('Producto eliminado:', data);
-            io.to('global-room').emit('delete-producto', data);
-        });
-
-        socket.on('paquete-new', (data) => {
-            console.log('Nuevo paquete recibido:', data);
-            io.to('global-room').emit('new-paquete', data);
-        });
-
-        socket.on('paquete-upload', (data) => {
-            console.log('Paquete subido:', data);
-            io.to('global-room').emit('upload-paquete', data);
-        });
-
-        socket.on('paquete-delete', (data) => {
-            console.log('Paquete eliminado:', data);
-            io.to('global-room').emit('delete-paquete', data);
-        });
-
-        //nuevos
-
-        socket.on('certificado-new', (data) => {
-            console.log('certificado nuevo:', data);
-            io.to('global-room').emit('new-certificados', data);
-        });
-
-        socket.on('certificado-delete', (data) => {
-            console.log('certificado eliminado:', data);
-            io.to('global-room').emit('delete-certificados', data);
-        });
-
-        socket.on('licencia-new', (data) => {
-            console.log('licencias:', data);
-            io.to('global-room').emit('new-licences', data);
         });
 
         socket.on('join-license-room', (sessionId) => {
@@ -118,5 +64,4 @@ module.exports = (io) => {
             io.to(sessionId).emit(event, data);
         }
     };
-
 };
