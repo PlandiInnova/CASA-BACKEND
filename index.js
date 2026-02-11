@@ -172,6 +172,9 @@ if (fs.existsSync(folderPath)) {
 const admin = require('./routes/routes-admin');
 app.use('/casa/admin/', dbMiddleware, admin());
 
+const login = require('./routes/routes-login');
+app.use('/casa/login/', dbMiddleware, login());
+
 const licencias = require('./routes/casa-web/routes-licencias');
 app.use('/casa/licencias/', dbMiddleware, licencias());
 
@@ -181,6 +184,9 @@ app.use('/casa/multimedia/', dbMiddleware, multimedia());
 // Rutas específicas para CASA-LAUNCHER
 const casaLauncherAuthRoutes = require('./routes/casa-launcher/routes-casa-launcher-auth');
 app.use('/casa/launcher/auth/', casaLauncherAuthRoutes());
+
+const casaLauncherProductosRoutes = require('./routes/casa-launcher/routes-casa-launcher-productos');
+app.use('/casa/launcher/productos/', casaLauncherProductosRoutes());
 
 app.use((req, res) => {
     res.status(404).json({

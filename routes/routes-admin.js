@@ -9,8 +9,34 @@ const { getProductos, updateProducto, addFilesToProducto, deleteFileFromProducto
 const { deleteMultimedia } = require('../controllers/ADMIN/multimedia/deleteMultimedia.controller');
 const { deleteProducto } = require('../controllers/ADMIN/multimedia/deleteProducto.controller');
 const { updateStatus } = require('../controllers/ADMIN/multimedia/updateStatus.controller');
+const { registrarVenta } = require('../controllers/ventas/venta/registrarVenta.controller');
+const { getTiposVenta } = require('../controllers/ventas/venta/tiposVenta.controller');
+const { getVentas } = require('../controllers/ventas/venta/ventas.controller');
+const { registrarPaquete } = require('../controllers/ventas/paquete/registrarPaquete.controller');
+const { getPaquetes } = require('../controllers/ventas/paquete/paquetes.controller');
+const { getPaquetesCompletos } = require('../controllers/ventas/paquete/paquetesCompletos.controller');
+const { generarLicencias } = require('../controllers/ventas/licencia/generarLicencias.controller');
+const { getLicenciasCompletas } = require('../controllers/ventas/licencia/licenciasCompletas.controller');
+const { updateLicenciaStatus } = require('../controllers/ventas/licencia/updateLicenciaStatus.controller');
+const { getLicenciasDistribucion } = require('../controllers/ventas/licencia/licenciasDistribucion.controller');
+const { getPedidosCompletos } = require('../controllers/ventas/pedido/pedidosCompletos.controller');
 
 module.exports = () => {
+
+    router.post('/registrar-venta', registrarVenta);
+    router.get('/tipos-venta', getTiposVenta);
+    router.get('/ventas', getVentas);
+
+    router.post('/registrar-paquete', registrarPaquete);
+    router.get('/paquetes', getPaquetes);
+    router.get('/paquetes-completos', getPaquetesCompletos);
+
+    router.post('/licencias', generarLicencias);
+    router.get('/licencias-completas', getLicenciasCompletas);
+    router.get('/licencias-distribucion', getLicenciasDistribucion);
+    router.put('/licencias/:id/status', updateLicenciaStatus);
+
+    router.get('/pedidos-completos', getPedidosCompletos);
 
     router.get('/filter-grados', filtros.getGradosFilter);
     router.get('/filter-subtipos', filtros.getSubtipoFilter);

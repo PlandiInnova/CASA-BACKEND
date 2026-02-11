@@ -4,7 +4,7 @@ const multer = require('multer');
 
 const BASE_DIR =
   process.env.NODE_ENV === 'production'
-    ? (process.env.UPLOAD_BASE_PATH || '/var/www/html')
+    ? path.join(process.env.UPLOAD_BASE_PATH || '/var/www/html', 'productos')
     : path.resolve(__dirname, '../../../../var/www/html/productos');
 
 function getArchivosEnCarpeta(proFiles) {
