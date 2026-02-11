@@ -183,6 +183,9 @@ app.use('/casa/multimedia/', dbMiddleware, multimedia());
 const casaLauncherAuthRoutes = require('./routes/casa-launcher/routes-casa-launcher-auth');
 app.use('/casa/launcher/auth/', casaLauncherAuthRoutes());
 
+const casaLauncherProductosRoutes = require('./routes/casa-launcher/routes-casa-launcher-productos');
+app.use('/casa/launcher/productos/', casaLauncherProductosRoutes());
+
 app.use((req, res) => {
     res.status(404).json({
         success: false,

@@ -33,8 +33,7 @@ exports.casaLauncherLogin = (req, res) => {
                 USU_APELLIDOM,
                 USU_USUARIO,
                 USU_PASSWORD,
-                USU_STATUS,
-                USU_LIC_ID
+                USU_STATUS
             FROM CAS_USUARIO
             WHERE USU_USUARIO = ? AND USU_STATUS = 1
             LIMIT 1
@@ -72,8 +71,7 @@ exports.casaLauncherLogin = (req, res) => {
                 usuario: user.USU_USUARIO,
                 nombre: user.USU_NOMBRE,
                 apellidoPaterno: user.USU_APELLIDOP,
-                apellidoMaterno: user.USU_APELLIDOM,
-                licId: user.USU_LIC_ID
+                apellidoMaterno: user.USU_APELLIDOM
             };
 
             const token = jwt.sign(payload, secret, {
