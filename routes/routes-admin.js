@@ -6,6 +6,7 @@ const multimedia = require('../controllers/ADMIN/multimedia/multimedia.controlle
 const uploadController = require('../controllers/ADMIN/multimedia/upload.controller');
 const uploadProd = require('../controllers/ADMIN/multimedia/uploadprod.controllers');
 const { getProductos, updateProducto, addFilesToProducto, deleteFileFromProducto }  = require('../controllers/ADMIN/multimedia/viewProductos.controller');
+const { getArchivosEnCarpeta } = require('../controllers/ADMIN/multimedia/productosFiles');
 const { deleteMultimedia } = require('../controllers/ADMIN/multimedia/deleteMultimedia.controller');
 const { deleteProducto } = require('../controllers/ADMIN/multimedia/deleteProducto.controller');
 const { updateStatus } = require('../controllers/ADMIN/multimedia/updateStatus.controller');
@@ -44,6 +45,18 @@ module.exports = () => {
     router.get('/update-status', updateStatus);
 
     router.get('/productos', getProductos);
+
+    
+    router.get('/productos/archivos', (req, res) => {
+        const proFiles = req.query.pro_files;
+        if (!proFiles || typeof proFiles !== 'string') {
+            return res.status(400).json({ detalle: 'Query pro_files es requerido (ej: ?pro_files=/productos/generador-de-interrogacion)' });
+        }
+        const archivos = getArchivosEnCarpeta(proFiles);
+        res.json({ pro_files: proFiles, archivos });
+    });
+
+
     router.put('/productos/:id', updateProducto);
     router.post('/productos/:id/archivos', addFilesToProducto);
     router.delete('/productos/:id/archivos/:filename', deleteFileFromProducto);
