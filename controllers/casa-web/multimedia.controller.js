@@ -12,7 +12,7 @@ exports.allMultimedia = (req, res) => {
                     details: error.message
                 });
             }
-            res.json(results);
+            res.json(results[0]);
         });
     } catch (error) {
         console.error('Error en la ruta de mostrarMultimedia:', error);
