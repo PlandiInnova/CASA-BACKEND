@@ -10,7 +10,7 @@ exports.getPedidosCompletos = (req, res) => {
             p.PDD_BITACORA AS bitacora,
             p.PDD_SISTEMA AS sistema,
             p.PDD_SOLICITANTE AS solicitante,
-            p.PPD_FECHA_REGISTRO AS fechaRegistro,
+            p.PDD_FECHA_REGISTRO AS fechaRegistro,
             COALESCE(u.UAD_NOMBRE, 'Sin usuario') AS usuarioNombre,
             p.PDD_UAD_ID AS uadId
         FROM CAS_PEDIDO p

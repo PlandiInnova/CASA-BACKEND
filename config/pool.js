@@ -2,8 +2,6 @@ const mysql = require('mysql');
 const config = require('./config')[process.env.NODE_ENV || 'development'];
 require('dotenv').config();
 
-console.log(config);
-
 const pool = mysql.createPool({
     host: config.host,
     port: config.port,

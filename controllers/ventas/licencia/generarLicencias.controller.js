@@ -12,6 +12,8 @@
  * - Eventos emitidos a esa sala: licencias-inicio, licencias-progreso, licencias-fin, licencias-error
  */
 
+const { fetchDistribucion } = require('./licenciasDistribucion.controller');
+
 const TOPE_MAXIMO = 400000;
 const TAMANO_LOTE = 10000;
 
@@ -222,6 +224,22 @@ exports.generarLicencias = (req, res) => {
                             mensaje: `Se generaron ${licenciasGeneradas.length} licencia(s)`
                         });
                     }
+                    
+                    // Emitir evento global para actualización en tiempo real de todas las licencias generadas
+                    if (req.io && licenciasGeneradas.length > 0) {
+                        req.io.emit('licencias-nuevas', {
+                            success: true,
+                            cantidad: licenciasGeneradas.length,
+                            mensaje: `Se generaron ${licenciasGeneradas.length} nueva(s) licencia(s)`
+                        });
+                        // Emitir distribución actualizada (dashboard por estado)
+                        fetchDistribucion(req.db, (errDist, dist) => {
+                            if (!errDist && dist) {
+                                req.io.emit('licencias-distribucion-actualizada', dist);
+                            }
+                        });
+                    }
+                    
                     return res.status(201).json({
                         success: true,
                         message: `Se generaron ${licenciasGeneradas.length} licencia(s)`,

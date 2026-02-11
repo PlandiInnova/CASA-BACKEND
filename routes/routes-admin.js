@@ -16,6 +16,9 @@ const { registrarPaquete } = require('../controllers/ventas/paquete/registrarPaq
 const { getPaquetes } = require('../controllers/ventas/paquete/paquetes.controller');
 const { getPaquetesCompletos } = require('../controllers/ventas/paquete/paquetesCompletos.controller');
 const { generarLicencias } = require('../controllers/ventas/licencia/generarLicencias.controller');
+const { getLicenciasCompletas } = require('../controllers/ventas/licencia/licenciasCompletas.controller');
+const { updateLicenciaStatus } = require('../controllers/ventas/licencia/updateLicenciaStatus.controller');
+const { getLicenciasDistribucion } = require('../controllers/ventas/licencia/licenciasDistribucion.controller');
 const { getPedidosCompletos } = require('../controllers/ventas/pedido/pedidosCompletos.controller');
 
 module.exports = () => {
@@ -29,6 +32,10 @@ module.exports = () => {
     router.get('/paquetes-completos', getPaquetesCompletos);
 
     router.post('/licencias', generarLicencias);
+    router.get('/licencias-completas', getLicenciasCompletas);
+    router.get('/licencias-distribucion', getLicenciasDistribucion);
+    router.put('/licencias/:id/status', updateLicenciaStatus);
+
     router.get('/pedidos-completos', getPedidosCompletos);
 
     router.get('/filter-grados', filtros.getGradosFilter);
