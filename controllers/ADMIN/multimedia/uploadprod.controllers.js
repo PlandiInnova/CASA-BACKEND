@@ -2,8 +2,8 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 
-const BASE_DIR = process.env.NODE_ENV === 'production' 
-    ? (process.env.UPLOAD_BASE_PATH || '/var/www/html/productos')
+const BASE_DIR = process.env.NODE_ENV === 'production'
+    ? path.join(process.env.UPLOAD_BASE_PATH || '/var/www/html', 'productos')
     : path.resolve(__dirname, '../../../../var/www/html/productos');
 
 function slugify(str) {
