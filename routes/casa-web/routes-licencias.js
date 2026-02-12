@@ -9,5 +9,7 @@ module.exports = () => {
     router.post('/insertarUsuario', licenciasController.insertUser);
     router.post('/agregarProductos', licenciasController.insertProducts);
     router.post('/loginEbooks', licenciasController.loginUser);
+    router.post('/recuperarPassword', licenciasController.recuperarPass);
+    router.post('/validarCorreo', licenciasController.validarCorreo);
     return router;
 }
