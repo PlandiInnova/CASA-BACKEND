@@ -1,26 +1,26 @@
 const nodemailer = require('nodemailer');
 
 //********* PRUEBAS LOCALES ************ */
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-        user: 'alexiselcazu@gmail.com',
-        pass: 'dumb rzgp edhs jbod'
-    }
-});
-
-//********* PROUDUCCION ************ */
 // const transporter = nodemailer.createTransport({
-//     host: 'mail.metabooks.com.mx', 
-//     port: 465,
-//     secure: true, 
+//     host: 'smtp.gmail.com',
+//     port: 587,
+//     secure: false,
 //     auth: {
-//         user: 'contacto@metabooks.com.mx',
-//         pass: 'DyLPcBnbrzFct8jF'
+//         user: 'alexiselcazu@gmail.com',
+//         pass: 'dumb rzgp edhs jbod'
 //     }
 // });
+
+//********* PROUDUCCION ************ */
+const transporter = nodemailer.createTransport({
+    host: 'mail.metabooks.com.mx', 
+    port: 465,
+    secure: true, 
+    auth: {
+        user: 'contacto@metabooks.com.mx',
+        pass: 'DyLPcBnbrzFct8jF'
+    }
+});
 
 
 
