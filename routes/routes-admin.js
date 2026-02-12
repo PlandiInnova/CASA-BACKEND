@@ -18,6 +18,7 @@ const { registrarPaquete } = require('../controllers/ventas/paquete/registrarPaq
 const { getPaquetes } = require('../controllers/ventas/paquete/paquetes.controller');
 const { getPaquetesCompletos } = require('../controllers/ventas/paquete/paquetesCompletos.controller');
 const { updatePaquete } = require('../controllers/ventas/paquete/updatePaquete.controller');
+const { deletePaquete } = require('../controllers/ventas/paquete/deletePaquete.controller');
 const { generarLicencias } = require('../controllers/ventas/licencia/generarLicencias.controller');
 const { getLicenciasCompletas } = require('../controllers/ventas/licencia/licenciasCompletas.controller');
 const { updateLicenciaStatus } = require('../controllers/ventas/licencia/updateLicenciaStatus.controller');
@@ -35,6 +36,7 @@ module.exports = () => {
     router.get('/paquetes', getPaquetes);
     router.get('/paquetes-completos', getPaquetesCompletos);
     router.put('/paquetes/:id', updatePaquete);
+    router.delete('/paquetes/:id', deletePaquete);
 
     router.post('/licencias', generarLicencias);
     router.get('/licencias-completas', getLicenciasCompletas);
