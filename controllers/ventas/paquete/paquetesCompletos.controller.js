@@ -13,7 +13,9 @@ exports.getPaquetesCompletos = (req, res) => {
             p.PAQ_PRODUCTOS AS productosJson,
             p.PAQ_FECHA_REGISTRO AS fechaRegistro,
             COALESCE(u.UAD_NOMBRE, 'Sin usuario') AS usuarioNombre,
-            p.PAQ_UAD_ID AS uadId
+            p.PAQ_UAD_ID AS uadId,
+            (SELECT COUNT(*) FROM CAS_LICENCIA l WHERE l.LIC_PAQ_ID = p.PAQ_ID) AS cantidadLicencias,
+            (SELECT COUNT(*) > 0 FROM CAS_LICENCIA l WHERE l.LIC_PAQ_ID = p.PAQ_ID) AS tieneLicencias
         FROM CAS_PAQUETE p
         LEFT JOIN CAS_USUARIO_ADMIN u ON p.PAQ_UAD_ID = u.UAD_ID
         ORDER BY p.PAQ_ID DESC`,
@@ -59,6 +61,8 @@ exports.getPaquetesCompletos = (req, res) => {
                         fechaRegistro: row.fechaRegistro,
                         usuarioNombre: row.usuarioNombre,
                         uadId: row.uadId,
+                        cantidadLicencias: row.cantidadLicencias ?? 0,
+                        tieneLicencias: row.tieneLicencias ?? 0,
                         productos: []
                     });
                     return procesarPaquete(index + 1, callback);
@@ -84,6 +88,8 @@ exports.getPaquetesCompletos = (req, res) => {
                             fechaRegistro: row.fechaRegistro,
                             usuarioNombre: row.usuarioNombre,
                             uadId: row.uadId,
+                            cantidadLicencias: row.cantidadLicencias ?? 0,
+                            tieneLicencias: row.tieneLicencias ?? 0,
                             productos: Array.isArray(productos) ? productos : []
                         });
 

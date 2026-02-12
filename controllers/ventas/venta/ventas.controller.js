@@ -10,7 +10,9 @@ exports.getVentas = (req, res) => {
             v.VEN_TIPO AS tipo,
             v.VEN_FECHA_REGISTRO AS fechaRegistro,
             COALESCE(u.UAD_NOMBRE, 'Sin usuario') AS usuarioNombre,
-            v.VEN_UAD_ID AS uadId
+            v.VEN_UAD_ID AS uadId,
+            (SELECT COUNT(*) FROM CAS_LICENCIA l WHERE l.LIC_VEN_ID = v.VEN_ID) AS cantidadLicencias,
+            (SELECT COUNT(*) > 0 FROM CAS_LICENCIA l WHERE l.LIC_VEN_ID = v.VEN_ID) AS tieneLicencias
         FROM CAS_VENTA v
         LEFT JOIN CAS_USUARIO_ADMIN u ON v.VEN_UAD_ID = u.UAD_ID
         ORDER BY v.VEN_ID DESC`,
@@ -25,6 +27,7 @@ exports.getVentas = (req, res) => {
                 });
             }
             res.status(200).json(Array.isArray(rows) ? rows : []);
+            console.log(rows);
         }
     );
 };

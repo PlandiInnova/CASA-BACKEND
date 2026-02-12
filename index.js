@@ -157,9 +157,7 @@ app.use(apiLimiter);
 
 const folderPath = process.env.NODE_ENV === 'production'
     ? (process.env.UPLOAD_BASE_PATH || '/var/www/html')
-    // : path.resolve(__dirname, '../var/www/html');
-    //PRUEBA LOCAL DE ARCHIVOS
-     : path.resolve(__dirname, 'var/www/html');
+     : path.resolve(__dirname, '../var/www/html');
 console.log(`[INFO] Intentando servir archivos desde: ${folderPath}`);
 
 if (fs.existsSync(folderPath)) {

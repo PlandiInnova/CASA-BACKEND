@@ -59,7 +59,9 @@ exports.registrarVenta = (req, res) => {
                         v.VEN_TIPO AS tipo,
                         v.VEN_FECHA_REGISTRO AS fechaRegistro,
                         COALESCE(u.UAD_NOMBRE, 'Sin usuario') AS usuarioNombre,
-                        v.VEN_UAD_ID AS uadId
+                        v.VEN_UAD_ID AS uadId,
+                        (SELECT COUNT(*) FROM CAS_LICENCIA l WHERE l.LIC_VEN_ID = v.VEN_ID) AS cantidadLicencias,
+                        (SELECT COUNT(*) > 0 FROM CAS_LICENCIA l WHERE l.LIC_VEN_ID = v.VEN_ID) AS tieneLicencias
                     FROM CAS_VENTA v
                     LEFT JOIN CAS_USUARIO_ADMIN u ON v.VEN_UAD_ID = u.UAD_ID
                     WHERE v.VEN_ID = ?`,
@@ -71,7 +73,9 @@ exports.registrarVenta = (req, res) => {
                             tipo: tipoVal,
                             fechaRegistro: fecha_registro,
                             usuarioNombre: 'Sin usuario',
-                            uadId: id_usuarioVal
+                            uadId: id_usuarioVal,
+                            cantidadLicencias: 0,
+                            tieneLicencias: 0
                         };
 
                         // Emitir evento Socket.IO para actualización en tiempo real
