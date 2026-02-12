@@ -133,6 +133,8 @@ exports.registrarPaquete = (req, res) => {
                                 fechaRegistro: row.fechaRegistro,
                                 usuarioNombre: row.usuarioNombre,
                                 uadId: row.uadId,
+                                cantidadLicencias: 0,
+                                tieneLicencias: 0,
                                 productos: productos
                             };
 

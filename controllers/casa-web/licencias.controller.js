@@ -1,26 +1,26 @@
 const nodemailer = require('nodemailer');
 
 //********* PRUEBAS LOCALES ************ */
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-        user: 'alexiselcazu@gmail.com',
-        pass: 'dumb rzgp edhs jbod'
-    }
-});
-
-//********* PROUDCCION ************ */
 // const transporter = nodemailer.createTransport({
-//     host: 'mail.metabooks.com.mx', 
-//     port: 465,
-//     secure: true, 
+//     host: 'smtp.gmail.com',
+//     port: 587,
+//     secure: false,
 //     auth: {
-//         user: 'contacto@metabooks.com.mx',
-//         pass: 'DyLPcBnbrzFct8jF'
+//         user: 'alexiselcazu@gmail.com',
+//         pass: 'dumb rzgp edhs jbod'
 //     }
 // });
+
+//********* PROUDUCCION ************ */
+const transporter = nodemailer.createTransport({
+    host: 'mail.metabooks.com.mx', 
+    port: 465,
+    secure: true, 
+    auth: {
+        user: 'contacto@metabooks.com.mx',
+        pass: 'DyLPcBnbrzFct8jF'
+    }
+});
 
 
 
@@ -89,6 +89,62 @@ exports.loginUser = async (req, res) => {
         res.status(500).json({
             response: 'ERROR',
             code: 'ERROR_SERVIDOR'
+        });
+    }
+};
+
+exports.recuperarPass = async (req, res) => {
+    const { correo, nombre, usuario, password } = req.body;
+
+    try {
+
+        await enviarCorreoRecuperarCuenta({
+            correo,
+            nombre,
+            usuario,
+            password
+        });
+
+        // RESPUESTA DE ÉXITO
+        return res.status(200).json({
+            ok: true,
+            message: 'Correo enviado correctamente'
+        });
+
+    } catch (err) {
+
+        console.error('⚠️ Error enviando correo:', err.message);
+
+        //RESPUESTA DE ERROR
+        return res.status(500).json({
+            ok: false,
+            message: 'Error al enviar el correo'
+        });
+    }
+};
+
+
+exports.validarCorreo = (req, res) => {
+    try {
+        const { correo } = req.body;
+
+        const query = 'CALL sp_existe_correo_usuario(?)';
+
+        req.db.query(query, [correo], (error, results) => {
+            if (error) {
+                console.error('Error en la consulta de sp_existe_correo_usuario:', error);
+                return res.status(500).json({
+                    error: 'Error al obtener la respuesta',
+                    details: error.message
+                });
+            } 
+            res.json(results[0]);
+        });
+    } catch (error) {
+        console.error('Error en la ruta de validarCorreo:', error);
+        res.status(500).json({
+            error: 'Error interno del servidor',
+            details: error.message
         });
     }
 };
@@ -335,7 +391,7 @@ async function enviarCorreoBienvenida({ correo, nombre, usuario, password }) {
         <li><strong>Contraseña:</strong> ${password}</li>
       </ul>
 
-      <p>Te recomendamos cambiar tu contraseña después de iniciar sesión.</p>
+      <p>Te recomendamos recordar tu contraseña.</p>
 
       <br>
       <p>Equipo <strong>Casa Web</strong></p>
@@ -346,6 +402,36 @@ async function enviarCorreoBienvenida({ correo, nombre, usuario, password }) {
         from: '"Casa Web" <contacto@metabooks.com.mx>',
         to: correo,
         subject: 'Bienvenido a Casa Web',
+        html
+    });
+}
+
+
+async function enviarCorreoRecuperarCuenta({ correo, nombre, usuario, password }) {
+    const html = `
+    <div style="font-family: Arial, sans-serif;">
+      <h2>¡CASA WEB! 🏠</h2>
+      <p>Hola <strong>${nombre}</strong>,</p>
+
+      <p>Estos son tus datos para ingresar y seguir disfrutando del contenido.</p>
+
+      <p><strong>Datos de acceso:</strong></p>
+      <ul>
+        <li><strong>Usuario:</strong> ${usuario}</li>
+        <li><strong>Contraseña:</strong> ${password}</li>
+      </ul>
+
+      <p>Te recomendamos anotar tus datos de inicio de sesion para que no se te olviden.</p>
+
+      <br>
+      <p>Equipo <strong>Casa Web</strong></p>
+    </div>
+  `;
+
+    await transporter.sendMail({
+        from: '"Casa Web" <contacto@metabooks.com.mx>',
+        to: correo,
+        subject: 'Recuperar contraseña',
         html
     });
 }
