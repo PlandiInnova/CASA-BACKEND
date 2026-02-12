@@ -638,20 +638,30 @@ function extractRelativePath(fullPath) {
 }
 
 function isDefaultThumbnail(thumbnailPath) {
-    if (!thumbnailPath) return false;
+    if (!thumbnailPath || typeof thumbnailPath !== 'string') return false;
+    const raw = thumbnailPath.trim().toLowerCase();
+    // Por nombre de archivo (cualquier ruta que apunte al default del sistema)
+    if (raw.endsWith('default-video-thumbnail.jpg') || raw.includes('default-video-thumbnail.jpg')) return true;
     const normalized = extractRelativePath(thumbnailPath);
-    return normalized.includes('default-video-thumbnail.jpg') || 
-           normalized.endsWith('/default-video-thumbnail.jpg') ||
-           normalized === '/multimedia/thumbnails/default-video-thumbnail.jpg';
+    if (!normalized) return false;
+    const norm = normalized.toLowerCase();
+    return norm.includes('default-video-thumbnail.jpg') || 
+           norm.endsWith('/default-video-thumbnail.jpg') ||
+           norm === '/multimedia/thumbnails/default-video-thumbnail.jpg';
 }
 
 function normalizeAndDeleteOldFile(oldPath, baseDir) {
-    if (!oldPath || oldPath.trim() === '') {
+    if (!oldPath || (typeof oldPath === 'string' && oldPath.trim() === '')) {
         return;
     }
-    
+    // Nunca eliminar la miniatura por defecto de videos (compartida por todos)
     if (isDefaultThumbnail(oldPath)) {
         console.log('⚠️ Intento de eliminar miniatura por defecto bloqueado:', oldPath);
+        return;
+    }
+    const basename = path.basename(String(oldPath).replace(/\\/g, '/'));
+    if (basename.toLowerCase() === 'default-video-thumbnail.jpg') {
+        console.log('⚠️ Intento de eliminar archivo por defecto bloqueado por basename:', oldPath);
         return;
     }
     
