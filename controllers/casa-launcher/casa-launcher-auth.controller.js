@@ -1,7 +1,5 @@
-const jwt = require('jsonwebtoken');
-
 /**
- * Login para CASA-LAUNCHER.
+ * Login para CASA-LAUNCHER. Sin token ni JWT.
  * Espera en el body: { usuario, password }
  */
 exports.casaLauncherLogin = (req, res) => {
@@ -15,22 +13,13 @@ exports.casaLauncherLogin = (req, res) => {
             });
         }
 
-        const secret = process.env.CASA_LAUNCHER_JWT_SECRET || process.env.CALA_JWT_SECRET;
-
-        if (!secret) {
-            console.error('[CASA-LAUNCHER AUTH] Falta la variable de entorno CASA_LAUNCHER_JWT_SECRET');
-            return res.status(500).json({
-                success: false,
-                message: 'Configuración de autenticación no disponible'
-            });
-        }
-
         const query = `
             SELECT 
                 USU_ID,
                 USU_NOMBRE,
                 USU_APELLIDOP,
                 USU_APELLIDOM,
+                USU_CORREO,
                 USU_USUARIO,
                 USU_PASSWORD,
                 USU_STATUS
@@ -66,52 +55,46 @@ exports.casaLauncherLogin = (req, res) => {
                 });
             }
 
-            const payload = {
-                id: user.USU_ID,
-                usuario: user.USU_USUARIO,
-                nombre: user.USU_NOMBRE,
-                apellidoPaterno: user.USU_APELLIDOP,
-                apellidoMaterno: user.USU_APELLIDOM
-            };
+            // Obtener la fecha de expiración máxima de todas las licencias activas del usuario
+            const licQuery = `
+                SELECT 
+                    MAX(cl.LIC_FECHA_FIN) AS maxFechaFin
+                FROM CAS_LICENCIAS_USUARIOS AS clu
+                INNER JOIN CAS_LICENCIA AS cl ON cl.LIC_ID = clu.LUS_LIC_ID
+                WHERE clu.LUS_USU_ID = ? AND cl.LIC_STATUS = 1
+            `;
 
-            const token = jwt.sign(payload, secret, {
-                expiresIn: process.env.CASA_LAUNCHER_JWT_EXPIRES_IN || process.env.CALA_JWT_EXPIRES_IN || '8h'
-            });
+            req.db.query(licQuery, [user.USU_ID], (licError, licResults) => {
+                if (licError) {
+                    console.error('[CASA-LAUNCHER AUTH] Error obteniendo licencias de usuario:', licError);
+                    return res.status(500).json({
+                        success: false,
+                        message: 'Error al obtener la información de licencias del usuario',
+                        details: process.env.NODE_ENV === 'development' ? licError.message : undefined
+                    });
+                }
 
-            return res.json({
-                success: true,
-                token,
-                user: payload
+                const maxFechaFin = licResults && licResults[0] ? licResults[0].maxFechaFin : null;
+
+                const payload = {
+                    id: user.USU_ID,
+                    usuario: user.USU_USUARIO,
+                    nombre: user.USU_NOMBRE,
+                    apellidoPaterno: user.USU_APELLIDOP,
+                    apellidoMaterno: user.USU_APELLIDOM,
+                    correo: user.USU_CORREO || null,
+                    expirationDate: maxFechaFin ? maxFechaFin : null,
+                    password: user.USU_PASSWORD
+                };
+
+                return res.json({
+                    success: true,
+                    user: payload
+                });
             });
         });
     } catch (error) {
         console.error('[CASA-LAUNCHER AUTH] Error inesperado en casaLauncherLogin:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Error interno del servidor'
-        });
-    }
-};
-
-/**
- * Devuelve la información del usuario autenticado a partir del JWT.
- * Requiere que el middleware de autenticación haya poblado req.casaLauncherUser.
- */
-exports.casaLauncherMe = (req, res) => {
-    try {
-        if (!req.casaLauncherUser) {
-            return res.status(401).json({
-                success: false,
-                message: 'No hay usuario autenticado'
-            });
-        }
-
-        return res.json({
-            success: true,
-            user: req.casaLauncherUser
-        });
-    } catch (error) {
-        console.error('[CASA-LAUNCHER AUTH] Error inesperado en casaLauncherMe:', error);
         return res.status(500).json({
             success: false,
             message: 'Error interno del servidor'

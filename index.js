@@ -160,7 +160,7 @@ app.use(apiLimiter);
 
 const folderPath = process.env.NODE_ENV === 'production'
     ? (process.env.UPLOAD_BASE_PATH || '/var/www/html')
-     : path.resolve(__dirname, '../var/www/html');
+    : path.resolve(__dirname, '../var/www/html');
 console.log(`[INFO] Intentando servir archivos desde: ${folderPath}`);
 
 if (fs.existsSync(folderPath)) {
@@ -188,6 +188,9 @@ app.use('/casa/launcher/auth/', casaLauncherAuthRoutes());
 
 const casaLauncherProductosRoutes = require('./routes/casa-launcher/routes-casa-launcher-productos');
 app.use('/casa/launcher/productos/', casaLauncherProductosRoutes());
+
+const desktopAuthRoutes = require('./routes/casa-launcher/routes-desktop-auth');
+app.use('/casa/desktop-auth/', dbMiddleware, desktopAuthRoutes());
 
 app.use((req, res) => {
     res.status(404).json({

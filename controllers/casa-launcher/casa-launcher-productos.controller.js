@@ -1,19 +1,25 @@
 /**
  * Controlador de productos para CASA-LAUNCHER.
- * Obtiene los productos a los que el usuario tiene acceso vía:
- * CAS_USUARIO → CAS_LICENCIAS_USUARIOS → CAS_LICENCIA → CAS_PAQUETE (PAQ_PRODUCTOS) → CAS_PRODUCTOS
- * Usa DISTINCT para no duplicar productos cuando el usuario tiene varias licencias.
+ * Query: usuario (USU_USUARIO). Obtiene productos vía licencias del usuario.
  */
 exports.getProductos = (req, res) => {
-    console.log('Obteniendo productos para usuario:', req.casaLauncherUser?.id);
-    try {
-        const userId = req.casaLauncherUser?.id;
-        if (!userId) {
+    const usuario = req.query.usuario;
+    if (!usuario) {
+        return res.status(400).json({
+            success: false,
+            message: 'Parámetro usuario es requerido'
+        });
+    }
+
+    const queryUser = `SELECT USU_ID FROM CAS_USUARIO WHERE USU_USUARIO = ? AND USU_STATUS = 1 LIMIT 1`;
+    req.db.query(queryUser, [usuario], (errUser, userRows) => {
+        if (errUser || !userRows || userRows.length === 0) {
             return res.status(401).json({
                 success: false,
-                message: 'Usuario no autenticado'
+                message: 'Usuario no válido'
             });
         }
+        const userId = userRows[0].USU_ID;
 
         const queryPaquetes = `
             SELECT p.PAQ_PRODUCTOS
@@ -87,11 +93,5 @@ exports.getProductos = (req, res) => {
                 });
             });
         });
-    } catch (error) {
-        console.error('[CASA-LAUNCHER PRODUCTOS] Error inesperado en getProductos:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Error interno del servidor'
-        });
-    }
+    });
 };
