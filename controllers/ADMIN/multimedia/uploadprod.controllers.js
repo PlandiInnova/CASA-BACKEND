@@ -45,7 +45,16 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage });
+// 20GB por archivo para subidas grandes (alineado con nginx client_max_body_size)
+const MAX_FILE_SIZE = 20 * 1024 * 1024 * 1024;
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: MAX_FILE_SIZE,
+    fieldSize: 10 * 1024 * 1024, // 10MB para campos del formulario
+  },
+});
 
 const uploadMiddleware = upload.array('archivo');
 
