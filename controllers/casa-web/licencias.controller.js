@@ -22,6 +22,35 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+//************** PALABRAS PROHBIDAS PARA EL USUARIO ********************** */
+const PALABRAS_PROHIBIDAS = new Set([
+    'PENE',
+    'PUTA',
+    'PUTO',
+    'CACA',
+    'FETO',
+    'TETA',
+    'PITO',
+    'COLO',
+    'COÑO',
+    'CULO',
+    'JODA',
+    'MEOX',
+    'ORTO',
+    'PEDO',
+    'PICH',
+    'RAJA',
+    'PICO',
+    'PELO',
+    'MEAR',
+    'GATO',
+    'LORA',
+    'KAKA',
+    'PUT4',
+    'VACA',
+    'VAKA',
+]);
+
 
 
 exports.existLicence = (req, res) => {
@@ -359,12 +388,67 @@ function generarRandomAlfanumerico(length = 4) {
 }
 
 function generarUsuarioBase(nombre, apellidop, apellidom) {
-    return (
-        nombre.substring(0, 2) +
-        apellidop.substring(0, 1) +
-        apellidom.substring(0, 1)
-    ).toUpperCase();
+    nombre = nombre.toUpperCase().trim();
+    apellidop = apellidop.toUpperCase().trim();
+    apellidom = apellidom.toUpperCase().trim();
+
+    const maxIntentos = nombre.length; // límite basado en nombre
+    let intento = 0;
+
+    while (intento < maxIntentos) {
+
+        let usuarioBase;
+
+        if (intento === 0) {
+            // Caso original
+            usuarioBase =
+                nombre.substring(0, 2) +
+                apellidop.substring(0, 1) +
+                apellidom.substring(0, 1);
+        } else {
+            const indiceNombre = intento + 1; // 3ra, 4ta, etc
+            const indiceApellido = intento;   // 2da, 3ra, etc
+
+            if (
+                indiceNombre >= nombre.length ||
+                indiceApellido >= apellidop.length ||
+                indiceApellido >= apellidom.length
+            ) {
+                break;
+            }
+
+            usuarioBase =
+                nombre.substring(0, 1) +
+                nombre.charAt(indiceNombre) +
+                apellidop.charAt(indiceApellido) +
+                apellidom.charAt(indiceApellido);
+        }
+
+        if (!esPalabraProhibida(usuarioBase)) {
+            return usuarioBase;
+        }
+
+        intento++;
+    }
+
+    // Si se agotaron letras → generar aleatorio seguro
+    let randomBase;
+    do {
+        randomBase = generarRandomSoloLetras(4);
+    } while (esPalabraProhibida(randomBase));
+
+    return randomBase;
 }
+
+function generarRandomSoloLetras(length = 4) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
 
 function usuarioExiste(db, usuario) {
     return new Promise((resolve, reject) => {
@@ -375,6 +459,11 @@ function usuarioExiste(db, usuario) {
         });
     });
 }
+
+function esPalabraProhibida(texto) {
+    return PALABRAS_PROHIBIDAS.has(texto.toUpperCase());
+}
+
 
 
 async function enviarCorreoBienvenida({ correo, nombre, usuario, password }) {
