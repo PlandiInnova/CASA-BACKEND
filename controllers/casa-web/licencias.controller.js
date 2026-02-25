@@ -22,6 +22,35 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+//************** PALABRAS PROHBIDAS PARA EL USUARIO ********************** */
+const PALABRAS_PROHIBIDAS = new Set([
+    'PENE',
+    'PUTA',
+    'PUTO',
+    'CACA',
+    'FETO',
+    'TETA',
+    'PITO',
+    'COLO',
+    'COÑO',
+    'CULO',
+    'JODA',
+    'MEOX',
+    'ORTO',
+    'PEDO',
+    'PICH',
+    'RAJA',
+    'PICO',
+    'PELO',
+    'MEAR',
+    'GATO',
+    'LORA',
+    'KAKA',
+    'PUT4',
+    'VACA',
+    'VAKA',
+]);
+
 
 
 exports.existLicence = (req, res) => {
@@ -137,7 +166,7 @@ exports.validarCorreo = (req, res) => {
                     error: 'Error al obtener la respuesta',
                     details: error.message
                 });
-            } 
+            }
             res.json(results[0]);
         });
     } catch (error) {
@@ -359,12 +388,67 @@ function generarRandomAlfanumerico(length = 4) {
 }
 
 function generarUsuarioBase(nombre, apellidop, apellidom) {
-    return (
-        nombre.substring(0, 2) +
-        apellidop.substring(0, 1) +
-        apellidom.substring(0, 1)
-    ).toUpperCase();
+    nombre = nombre.toUpperCase().trim();
+    apellidop = apellidop.toUpperCase().trim();
+    apellidom = apellidom.toUpperCase().trim();
+
+    const maxIntentos = nombre.length; // límite basado en nombre
+    let intento = 0;
+
+    while (intento < maxIntentos) {
+
+        let usuarioBase;
+
+        if (intento === 0) {
+            // Caso original
+            usuarioBase =
+                nombre.substring(0, 2) +
+                apellidop.substring(0, 1) +
+                apellidom.substring(0, 1);
+        } else {
+            const indiceNombre = intento + 1; // 3ra, 4ta, etc
+            const indiceApellido = intento;   // 2da, 3ra, etc
+
+            if (
+                indiceNombre >= nombre.length ||
+                indiceApellido >= apellidop.length ||
+                indiceApellido >= apellidom.length
+            ) {
+                break;
+            }
+
+            usuarioBase =
+                nombre.substring(0, 1) +
+                nombre.charAt(indiceNombre) +
+                apellidop.charAt(indiceApellido) +
+                apellidom.charAt(indiceApellido);
+        }
+
+        if (!esPalabraProhibida(usuarioBase)) {
+            return usuarioBase;
+        }
+
+        intento++;
+    }
+
+    // Si se agotaron letras → generar aleatorio seguro
+    let randomBase;
+    do {
+        randomBase = generarRandomSoloLetras(4);
+    } while (esPalabraProhibida(randomBase));
+
+    return randomBase;
 }
+
+function generarRandomSoloLetras(length = 4) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
 
 function usuarioExiste(db, usuario) {
     return new Promise((resolve, reject) => {
@@ -376,26 +460,106 @@ function usuarioExiste(db, usuario) {
     });
 }
 
+function esPalabraProhibida(texto) {
+    return PALABRAS_PROHIBIDAS.has(texto.toUpperCase());
+}
+
+
 
 async function enviarCorreoBienvenida({ correo, nombre, usuario, password }) {
+
     const html = `
-    <div style="font-family: Arial, sans-serif;">
-      <h2>¡Bienvenido a Casa Web! 🏠</h2>
-      <p>Hola <strong>${nombre}</strong>,</p>
+  <table width="100%" cellpadding="0" cellspacing="0"
+    style="background-color:#E6E8F4; padding:40px 0; font-family: 'Segoe UI', Arial, Helvetica, sans-serif;;">
 
-      <p>Tu cuenta ha sido creada correctamente.</p>
+    <tr>
+        <td align="center">
 
-      <p><strong>Datos de acceso:</strong></p>
-      <ul>
-        <li><strong>Usuario:</strong> ${usuario}</li>
-        <li><strong>Contraseña:</strong> ${password}</li>
-      </ul>
+            <table width="600" cellpadding="0" cellspacing="0"
+                style="background: linear-gradient(180deg, #3F41C4 0%, #000B2D 60%); border-radius:20px; overflow:hidden;">
+                <tr>
+                    <td align="center" style="padding:50px 80px 10px 80px;">
+                        <p style="color:#FFFFFF; font-size:40px; font-weight: bold;">
+                            Bienvenido a
+                        </p>
+                    </td>
+                </tr>
+                <!-- HEADER CON IMAGEN -->
+                <tr>
+                    <td align="center">
+                        <img src="https://casa.metabooks.com.mx/multimedia/img-correo.png" width="600"
+                            style="display:block; max-width:100%;">
+                    </td>
+                </tr>
 
-      <p>Te recomendamos recordar tu contraseña.</p>
+                <!-- SALUDO -->
+                <tr>
+                    <td align="center" style="padding:0px 30px 10px 30px;">
+                        <h1 style="color:#ffffff; margin:0; font-size:50px; background: linear-gradient(90deg, #ffffff, #5590FE);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    display: inline-block;
+    background-size: 100% 100%;">
+                            ¡Hola ${nombre}!
+                        </h1>
+                    </td> 
+                </tr>
 
-      <br>
-      <p>Equipo <strong>Casa Web</strong></p>
-    </div>
+                <tr>
+                    <td align="center" style="padding:0 80px 30px 80px;">
+                        <p style="color:#cfd8ff; font-size:20px;">
+                            Tu cuenta ha sido creada correctamente.
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- DIVISOR -->
+                <tr>
+                    <td style="padding:0 40px;">
+                        <hr style="border:none; border-top:1px solid #FFFFFF;">
+                    </td>
+                </tr>
+
+                <!-- DATOS -->
+                <tr>
+                    <td align="center" style="padding:30px 40px;">
+                        <p style="color:#5691FF; font-weight:bold; margin-bottom:15px; font-size: 20px;">
+                            Datos de acceso:
+                        </p>
+
+                        <p style="color:#ffffff; margin:5px 0; font-size: 20px;">
+                            Usuario: <strong>${usuario}</strong>
+                        </p>
+
+                        <p style="color:#ffffff; margin:5px 0; font-size: 20px;">
+                            Contraseña: <strong>${password}</strong>
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- DIVISOR -->
+                <tr>
+                    <td style="padding:0 40px;">
+                        <hr style="border:none; border-top:1px solid #FFFFFF;">
+                    </td>
+                </tr>
+
+                <!-- FOOTER -->
+                <tr>
+                    <td align="center" style="padding:30px 50px 30px 50px;">
+                        <p style="color:#FFFFFF; font-size:20px;">
+                            Te recomendamos recordar tu contraseña.
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+
+</table>
   `;
 
     await transporter.sendMail({
@@ -407,25 +571,94 @@ async function enviarCorreoBienvenida({ correo, nombre, usuario, password }) {
 }
 
 
+
 async function enviarCorreoRecuperarCuenta({ correo, nombre, usuario, password }) {
     const html = `
-    <div style="font-family: Arial, sans-serif;">
-      <h2>¡CASA WEB! 🏠</h2>
-      <p>Hola <strong>${nombre}</strong>,</p>
+  <table width="100%" cellpadding="0" cellspacing="0"
+    style="background-color:#E6E8F4; padding:40px 0; font-family: 'Segoe UI', Arial, Helvetica, sans-serif;;">
 
-      <p>Estos son tus datos para ingresar y seguir disfrutando del contenido.</p>
+    <tr>
+        <td align="center">
 
-      <p><strong>Datos de acceso:</strong></p>
-      <ul>
-        <li><strong>Usuario:</strong> ${usuario}</li>
-        <li><strong>Contraseña:</strong> ${password}</li>
-      </ul>
+            <table width="600" cellpadding="0" cellspacing="0"
+                style="background: linear-gradient(180deg, #3F41C4 0%, #000B2D 60%); border-radius:20px; overflow:hidden;">
 
-      <p>Te recomendamos anotar tus datos de inicio de sesion para que no se te olviden.</p>
+                <!-- HEADER CON IMAGEN -->
+                <tr>
+                    <td align="center">
+                        <img src="https://casa.metabooks.com.mx/multimedia/img-correo.png" width="600"
+                            style="display:block; max-width:100%; margin-top: 70px;">
+                    </td>
+                </tr>
 
-      <br>
-      <p>Equipo <strong>Casa Web</strong></p>
-    </div>
+                <!-- SALUDO -->
+                <tr>
+                    <td align="center" style="padding:0px 30px 10px 30px;">
+                        <h1 style="color:#ffffff; margin:0; font-size:50px; background: linear-gradient(90deg, #ffffff, #5590FE);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    display: inline-block;
+    background-size: 100% 100%;">
+                            ¡Hola ${nombre}!
+                        </h1>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td align="center" style="padding:0 80px 30px 80px;">
+                        <p style="color:#cfd8ff; font-size:20px;">
+                            Estos son tus datos para ingresar y seguir disfrutando del contenido
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- DIVISOR -->
+                <tr>
+                    <td style="padding:0 40px;">
+                        <hr style="border:none; border-top:1px solid #FFFFFF;">
+                    </td>
+                </tr>
+
+                <!-- DATOS -->
+                <tr>
+                    <td align="center" style="padding:30px 40px;">
+                        <p style="color:#5691FF; font-weight:bold; margin-bottom:15px; font-size: 20px;">
+                            Datos de acceso:
+                        </p>
+
+                        <p style="color:#ffffff; margin:5px 0; font-size: 20px;">
+                            Usuario: <strong>${usuario}</strong>
+                        </p>
+
+                        <p style="color:#ffffff; margin:5px 0; font-size: 20px;">
+                            Contraseña: <strong>${password}</strong>
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- DIVISOR -->
+                <tr>
+                    <td style="padding:0 40px;">
+                        <hr style="border:none; border-top:1px solid #FFFFFF;">
+                    </td>
+                </tr>
+
+                <!-- FOOTER -->
+                <tr>
+                    <td align="center" style="padding:30px 50px 30px 50px;">
+                        <p style="color:#FFFFFF; font-size:20px;">
+                            Te recomendamos anotar tus datos de inicio de sesión para que no se te olviden.
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+
+</table>
   `;
 
     await transporter.sendMail({
