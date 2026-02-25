@@ -96,6 +96,7 @@ const io = new Server(server, {
         credentials: true
     },
     transports: ['websocket', 'polling'],
+    maxHttpBufferSize: 100 * 1024 * 1024,
     connectionStateRecovery: {
         maxDisconnectionDuration: 2 * 60 * 1000,
         skipMiddlewares: true
