@@ -578,6 +578,9 @@ exports.handleUpload = async (req, res) => {
             }
         }
 
+        const { emitTabCountsUpdated } = require('./countTabs');
+        if (!isEdit) emitTabCountsUpdated(req);
+
     } catch (error) {
         console.error('❌ Error general en handleUpload:', error);
         res.status(500).json({

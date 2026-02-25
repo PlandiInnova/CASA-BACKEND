@@ -102,6 +102,9 @@ function uploadProd(req, res) {
 
       const nombres = files.map((f) => f.filename);
 
+      const { emitTabCountsUpdated } = require('./countTabs');
+      emitTabCountsUpdated(req);
+
       res.status(200).json({
         carpeta,
         id: req.productoId,

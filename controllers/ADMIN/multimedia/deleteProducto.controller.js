@@ -58,6 +58,9 @@ function deleteProducto(req, res) {
         return res.status(404).json({ detalle: 'Producto no encontrado' });
       }
 
+      const { emitTabCountsUpdated } = require('./countTabs');
+      emitTabCountsUpdated(req);
+
       const removedFolder = dir ? rmDirRecursiveSafe(dir) : false;
 
       return res.status(200).json({

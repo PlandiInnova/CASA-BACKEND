@@ -68,6 +68,8 @@ function deleteMultimedia(req, res) {
       if (!result || result.affectedRows === 0) {
         return res.status(404).json({ detalle: 'Multimedia no encontrado' });
       }
+      const { emitTabCountsUpdated } = require('./countTabs');
+      emitTabCountsUpdated(req);
       return res.status(200).json({ ok: true, id });
     });
   });
