@@ -77,15 +77,19 @@ function uploadProd(req, res) {
     const primeraImagen = files.find((f) => (f.mimetype || '').startsWith('image/'));
     const proImagen = primeraImagen ? `${carpeta}/${primeraImagen.filename}` : null;
 
-    const proNombre = req.body.pro_titulo || null;
+    const proNombre = req.body.pro_nombre || req.body.pro_titulo || null;
+    const proNombreDetallado = req.body.pro_nombre_detallado != null
+      ? String(req.body.pro_nombre_detallado).trim().slice(0, 100)
+      : null;
+    const proDescripcion = req.body.pro_descripcion != null ? String(req.body.pro_descripcion) : null;
     const proGrado = req.body.pro_grado || null;
     const proExe = req.body.pro_exe || null;
     const proTipo = req.body.pro_tipo || null;
     const proVersion = 1;
 
-    const sql = `INSERT INTO CAS_PRODUCTOS (PRO_NOMBRE, PRO_GRA_ID, PRO_EXE, PRO_IMAGEN, PRO_TIPO, PRO_FILES, PRO_VERSION)
-                 VALUES (?, ?, ?, ?, ?, ?, ?)`;
-    const values = [proNombre, proGrado, proExe, proImagen, proTipo, carpeta, proVersion];
+    const sql = `INSERT INTO CAS_PRODUCTOS (PRO_NOMBRE, PRO_NOMBRE_DETALLADO, PRO_DESCRIPCION, PRO_GRA_ID, PRO_EXE, PRO_IMAGEN, PRO_TIPO, PRO_FILES, PRO_VERSION)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const values = [proNombre, proNombreDetallado, proDescripcion, proGrado, proExe, proImagen, proTipo, carpeta, proVersion];
 
     req.db.query(sql, values, (error, result) => {
       if (error) {
@@ -105,9 +109,12 @@ function uploadProd(req, res) {
         archivos: nombres,
         pro_imagen: proImagen,
         pro_titulo: proNombre,
+        pro_nombre: proNombre,
         pro_grado: proGrado,
         pro_exe: proExe,
         pro_tipo: proTipo,
+        pro_nombre_detallado: proNombreDetallado,
+        pro_descripcion: proDescripcion,
         pro_id: result.insertId,
       });
     });

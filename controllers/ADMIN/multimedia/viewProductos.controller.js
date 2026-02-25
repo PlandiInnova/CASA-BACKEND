@@ -65,6 +65,10 @@ function updateProducto(req, res) {
   const pro_exe = req.body?.pro_exe != null ? String(req.body.pro_exe).trim() : null;
   const pro_grado = req.body?.pro_grado != null ? parseInt(req.body.pro_grado, 10) : null;
   const pro_tipo = req.body?.pro_tipo != null ? String(req.body.pro_tipo) : null;
+  const pro_nombre_detallado = req.body?.pro_nombre_detallado != null
+    ? String(req.body.pro_nombre_detallado).trim().slice(0, 100)
+    : null;
+  const pro_descripcion = req.body?.pro_descripcion != null ? String(req.body.pro_descripcion) : null;
 
   // Obtener producto actual para saber PRO_FILES y renombrar carpeta si cambia el título
   req.db.query('SELECT PRO_NOMBRE, PRO_FILES FROM CAS_PRODUCTOS WHERE PRO_ID = ?', [id], (error, rows) => {
@@ -106,9 +110,9 @@ function updateProducto(req, res) {
     }
 
     const sql = `UPDATE CAS_PRODUCTOS SET 
-      PRO_NOMBRE = ?, PRO_EXE = ?, PRO_GRA_ID = ?, PRO_TIPO = ?, PRO_FILES = ?
+      PRO_NOMBRE = ?, PRO_EXE = ?, PRO_GRA_ID = ?, PRO_TIPO = ?, PRO_FILES = ?, PRO_NOMBRE_DETALLADO = ?, PRO_DESCRIPCION = ?
       WHERE PRO_ID = ?`;
-    const values = [pro_nombre, pro_exe, pro_grado, pro_tipo, newProFiles, id];
+    const values = [pro_nombre, pro_exe, pro_grado, pro_tipo, newProFiles, pro_nombre_detallado, pro_descripcion, id];
 
     req.db.query(sql, values, (err, result) => {
       if (err) {
