@@ -82,7 +82,7 @@ module.exports = () => {
             }
     
             const tipoStr = tipo.toString();
-            console.log('📤 Tipo de contenido recibido:', tipoStr);
+            // console.log('📤 Tipo de contenido recibido:', tipoStr);
     
             const fileTypes = ['Audios', 'Word', 'Excel', 'PDF'];
             

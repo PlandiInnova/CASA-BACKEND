@@ -81,7 +81,7 @@ function buildExcelLicencias(licencias, opts = {}) {
         views: [{ state: 'frozen', ySplit: 2, activeCell: 'A3', showGridLines: true }]
     });
 
-    const headers = ['LIC_ID', 'Licencia'];
+    const headers = ['Licencia'];
     if (hasFechaInicio) headers.push('Fecha inicio');
     if (hasFechaFin) headers.push('Fecha fin');
     if (hasTiempo) headers.push('Tiempo (días)');
@@ -150,7 +150,7 @@ function buildExcelLicencias(licencias, opts = {}) {
     const licTipoStr = formatOptional(licTipo);
 
     licencias.forEach((item, index) => {
-        const rowValues = [item.id, item.licencia];
+        const rowValues = [item.licencia];
         if (hasFechaInicio) rowValues.push(fechaInicioStr);
         if (hasFechaFin) rowValues.push(fechaFinStr);
         if (hasTiempo) rowValues.push(tiempoNum);
@@ -171,10 +171,9 @@ function buildExcelLicencias(licencias, opts = {}) {
             };
             cell.fill = isAlt ? { type: 'pattern', pattern: 'solid', fgColor: { argb: rowAlt } } : undefined;
             cell.font = { size: 10, color: { argb: 'FF333333' } };
-            const firstCol = colNumber === 1;
-            const numCol = hasTiempo && colNumber === 3 + (hasFechaInicio ? 1 : 0) + (hasFechaFin ? 1 : 0);
-            const dateCol = (hasFechaInicio && colNumber === 3) || (hasFechaFin && colNumber === (hasFechaInicio ? 4 : 3));
-            if (firstCol || numCol || dateCol) {
+            const numCol = hasTiempo && colNumber === 2 + (hasFechaInicio ? 1 : 0) + (hasFechaFin ? 1 : 0);
+            const dateCol = (hasFechaInicio && colNumber === 2) || (hasFechaFin && colNumber === (hasFechaInicio ? 3 : 2));
+            if (numCol || dateCol) {
                 cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: false };
             } else {
                 cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: false };

@@ -290,11 +290,11 @@ exports.handleUpload = async (req, res) => {
                 const hasNewImageFile = !!imageFile && imageFile.path;
                 
                 // Logs de depuración
-                console.log('🔍 DEBUG - Procesando miniatura:');
-                console.log('  - hasNewImageFile:', hasNewImageFile);
-                console.log('  - req.body.image:', req.body.image);
-                console.log('  - req.body.remove_thumbnail:', req.body.remove_thumbnail);
-                console.log('  - isEdit:', isEdit);
+                // console.log('🔍 DEBUG - Procesando miniatura:');
+                // console.log('  - hasNewImageFile:', hasNewImageFile);
+                // console.log('  - req.body.image:', req.body.image);
+                // console.log('  - req.body.remove_thumbnail:', req.body.remove_thumbnail);
+                // console.log('  - isEdit:', isEdit);
                 
                 let existingIconPath = '';
                 if (isEdit) {
@@ -316,7 +316,7 @@ exports.handleUpload = async (req, res) => {
                         );
                     });
                     existingIconPath = currentIcon || '';
-                    console.log('  - existingIconPath:', existingIconPath);
+                    // console.log('  - existingIconPath:', existingIconPath);
                 }
                 
                     const removeThumbnail = req.body.remove_thumbnail === 'true' || req.body.remove_thumbnail === true;
@@ -341,7 +341,7 @@ exports.handleUpload = async (req, res) => {
                     const fullPath = imageFile.path;
                     const normalizedNewPath = extractRelativePath(fullPath);
                     iconPath = normalizedNewPath;
-                    console.log('✅ Usando nueva imagen subida:', iconPath);
+                    // console.log('✅ Usando nueva imagen subida:', iconPath);
                     
                     if (isEdit && existingIconPath && 
                         !existingIconPath.includes('i.ytimg.com') &&
@@ -354,11 +354,11 @@ exports.handleUpload = async (req, res) => {
                 }
                 else if (req.body.image && req.body.image.trim() !== '') {
                     const imageValue = cleanMetadata(req.body.image);
-                    console.log('  - imageValue (después de cleanMetadata):', imageValue);
+                    // console.log('  - imageValue (después de cleanMetadata):', imageValue);
                     
                     if (imageValue.includes('i.ytimg.com')) {
                         iconPath = imageValue;
-                        console.log('✅ Usando miniatura preservada de YouTube:', iconPath);
+                        // console.log('✅ Usando miniatura preservada de YouTube:', iconPath);
                         if (isEdit && existingIconPath && 
                             !existingIconPath.includes('i.ytimg.com') && 
                             !isDefaultThumbnail(existingIconPath) &&
@@ -368,9 +368,9 @@ exports.handleUpload = async (req, res) => {
                     } else {
                         const extractedPath = extractRelativePath(imageValue);
                         iconPath = extractedPath;
-                        console.log('✅ Usando miniatura preservada del servidor:');
-                        console.log('  - imageValue original:', imageValue);
-                        console.log('  - iconPath extraído:', iconPath);
+                        // console.log('✅ Usando miniatura preservada del servidor:');
+                        // console.log('  - imageValue original:', imageValue);
+                        // console.log('  - iconPath extraído:', iconPath);
                         if (isEdit && existingIconPath && 
                             !existingIconPath.includes('i.ytimg.com') &&
                             !isDefaultThumbnail(existingIconPath)) {
@@ -415,7 +415,7 @@ exports.handleUpload = async (req, res) => {
                     } else {
                         iconPath = extractRelativePath(existingIconPath);
                     }
-                    console.log('✅ Usando miniatura existente en modo edición:', iconPath);
+                    // console.log('✅ Usando miniatura existente en modo edición:', iconPath);
                 } 
                 else {
                     if (metadata.includes('youtube.com') || metadata.includes('youtu.be')) {
@@ -428,7 +428,7 @@ exports.handleUpload = async (req, res) => {
                     } else {
                         iconPath = '/multimedia/thumbnails/default-video-thumbnail.jpg';
                     }
-                    console.log('⚠️ Usando miniatura por defecto:', iconPath);
+                    // console.log('⚠️ Usando miniatura por defecto:', iconPath);
                 }
             
                 break;
@@ -442,22 +442,22 @@ exports.handleUpload = async (req, res) => {
         
         let normalizedIconPath = iconPath || '';
         
-        console.log('🔍 DEBUG - Antes de normalización final:');
-        console.log('  - iconPath:', iconPath);
-        console.log('  - req.body.type:', req.body.type);
+        // console.log('🔍 DEBUG - Antes de normalización final:');
+        // console.log('  - iconPath:', iconPath);
+        // console.log('  - req.body.type:', req.body.type);
         
         if (req.body.type === 'Videos') {
             if (iconPath) {
                 if (iconPath.includes('i.ytimg.com')) {
                     normalizedIconPath = iconPath;
-                    console.log('  - Miniatura de YouTube, sin normalizar:', normalizedIconPath);
+                    // console.log('  - Miniatura de YouTube, sin normalizar:', normalizedIconPath);
                 } else {
                     if (iconPath.startsWith('/multimedia/')) {
                         normalizedIconPath = iconPath;
-                        console.log('  - Ya tiene /multimedia/, sin normalizar:', normalizedIconPath);
+                        // console.log('  - Ya tiene /multimedia/, sin normalizar:', normalizedIconPath);
                     } else {
                         normalizedIconPath = extractRelativePath(iconPath);
-                        console.log('  - Normalizado con extractRelativePath:', normalizedIconPath);
+                        // console.log('  - Normalizado con extractRelativePath:', normalizedIconPath);
                     }
                 }
             } else {
@@ -477,8 +477,8 @@ exports.handleUpload = async (req, res) => {
             }
         }
 
-        console.log('🔍 DEBUG - Después de normalización final:');
-        console.log('  - normalizedIconPath:', normalizedIconPath);
+        // console.log('🔍 DEBUG - Después de normalización final:');
+        // console.log('  - normalizedIconPath:', normalizedIconPath);
         
         if (req.body.type === 'Videos' && (!normalizedIconPath || normalizedIconPath.trim() === '')) {
             console.error('❌ ERROR: iconPath está vacío para un video');
@@ -659,12 +659,12 @@ function normalizeAndDeleteOldFile(oldPath, baseDir) {
     }
     // Nunca eliminar la miniatura por defecto de videos (compartida por todos)
     if (isDefaultThumbnail(oldPath)) {
-        console.log('⚠️ Intento de eliminar miniatura por defecto bloqueado:', oldPath);
+        // console.log('⚠️ Intento de eliminar miniatura por defecto bloqueado:', oldPath);
         return;
     }
     const basename = path.basename(String(oldPath).replace(/\\/g, '/'));
     if (basename.toLowerCase() === 'default-video-thumbnail.jpg') {
-        console.log('⚠️ Intento de eliminar archivo por defecto bloqueado por basename:', oldPath);
+        // console.log('⚠️ Intento de eliminar archivo por defecto bloqueado por basename:', oldPath);
         return;
     }
     

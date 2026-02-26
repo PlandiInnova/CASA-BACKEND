@@ -27,7 +27,7 @@ exports.getVentas = (req, res) => {
                 });
             }
             res.status(200).json(Array.isArray(rows) ? rows : []);
-            console.log(rows);
+            // console.log(rows);
         }
     );
 };
