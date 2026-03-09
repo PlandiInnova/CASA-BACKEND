@@ -34,7 +34,7 @@ exports.registrarVenta = (req, res) => {
         const id_usuarioVal = id_usuario.toString().trim().substring(0, 100);
         const fecha_registro = new Date().toISOString().slice(0, 10);
 
-        console.log(nombreVal, tipoVal, fecha_registro, id_usuarioVal);
+        // console.log(nombreVal, tipoVal, fecha_registro, id_usuarioVal);
 
         req.db.query(
             'INSERT INTO CAS_VENTA (VEN_NOMBRE, VEN_TIPO, VEN_FECHA_REGISTRO, VEN_UAD_ID) VALUES (?, ?, ?, ?)',

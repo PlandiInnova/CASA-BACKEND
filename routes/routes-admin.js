@@ -14,6 +14,7 @@ const { registrarVenta } = require('../controllers/ventas/venta/registrarVenta.c
 const { getTiposVenta } = require('../controllers/ventas/venta/tiposVenta.controller');
 const { getVentas } = require('../controllers/ventas/venta/ventas.controller');
 const { deleteVenta } = require('../controllers/ventas/venta/deleteVenta.controller');
+const { getCountabs } = require('../controllers/ADMIN/multimedia/countTabs');
 const { registrarPaquete } = require('../controllers/ventas/paquete/registrarPaquete.controller');
 const { getPaquetes } = require('../controllers/ventas/paquete/paquetes.controller');
 const { getPaquetesCompletos } = require('../controllers/ventas/paquete/paquetesCompletos.controller');
@@ -47,6 +48,7 @@ module.exports = () => {
 
     router.get('/filter-grados', filtros.getGradosFilter);
     router.get('/filter-subtipos', filtros.getSubtipoFilter);
+    router.get('/countabs', getCountabs);
 
     router.get('/update-status', updateStatus);
 
@@ -80,7 +82,7 @@ module.exports = () => {
             }
     
             const tipoStr = tipo.toString();
-            console.log('📤 Tipo de contenido recibido:', tipoStr);
+            // console.log('📤 Tipo de contenido recibido:', tipoStr);
     
             const fileTypes = ['Audios', 'Word', 'Excel', 'PDF'];
             

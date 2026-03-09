@@ -65,6 +65,8 @@ server.on('error', (error) => {
     console.error('========================================');
 });
 
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim().replace(/^['"]|['"]$/g, '')) || [];
+
 server.on('clientError', (error, socket) => {
     console.error('========================================');
     console.error('[ERROR EN CLIENTE HTTP]');
@@ -72,11 +74,20 @@ server.on('clientError', (error, socket) => {
     console.error(`Mensaje: ${error.message}`);
     console.error('========================================');
     if (!socket.destroyed) {
-        socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
+        const corsOrigin = allowedOrigins[0] || '*';
+        const body = JSON.stringify({ error: 'Bad Request', message: error.message });
+        const headers = [
+            'HTTP/1.1 400 Bad Request',
+            'Content-Type: application/json',
+            `Access-Control-Allow-Origin: ${corsOrigin}`,
+            ...(corsOrigin !== '*' ? ['Access-Control-Allow-Credentials: true'] : []),
+            `Content-Length: ${Buffer.byteLength(body)}`,
+            '',
+            ''
+        ].join('\r\n');
+        socket.end(headers + body);
     }
 });
-
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
 
 const io = new Server(server, {
     cors: {
@@ -85,6 +96,7 @@ const io = new Server(server, {
         credentials: true
     },
     transports: ['websocket', 'polling'],
+    maxHttpBufferSize: 100 * 1024 * 1024,
     connectionStateRecovery: {
         maxDisconnectionDuration: 2 * 60 * 1000,
         skipMiddlewares: true
@@ -150,6 +162,7 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining'],
+    credentials: true,
     maxAge: 600
 }));
 
