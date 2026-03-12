@@ -36,7 +36,8 @@ const fileFilter = (req, file, cb) => {
         excel: ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel.sheet.macroEnabled.12', 'application/vnd.ms-excel.template.macroEnabled.12'],
         pdf: ['application/pdf'],
         videos: ['video/mp4', 'video/webm', 'video/ogg', 'video/mpeg', 'video/quicktime', 'video/x-msvideo'],
-    };
+        ar: ['model/gltf-binary', 'application/octet-stream'],
+        };
 
     if (!tipo || !allowedTypes[tipo]?.includes(file.mimetype)) {
         const error = new Error(`Tipo de archivo no permitido para ${tipo}`);
@@ -145,7 +146,7 @@ exports.handleUpload = async (req, res) => {
             });
         }
 
-        const allowedContentTypes = ['Videos', 'Audios', 'Word', 'Excel', 'PDF'];
+        const allowedContentTypes = ['Videos', 'Audios', 'Word', 'Excel', 'PDF', 'AR'];
         if (!allowedContentTypes.includes(req.body.type)) {
             return res.status(400).json({
                 error: 'Tipo de contenido no válido',
@@ -167,6 +168,7 @@ exports.handleUpload = async (req, res) => {
             'Word': '3',
             'Excel': '4',
             'PDF': '5',
+            'AR': '8',
         };
 
         switch (req.body.type) {
@@ -174,6 +176,7 @@ exports.handleUpload = async (req, res) => {
             case 'Word':
             case 'Excel':
             case 'PDF':
+            case 'AR':
                 if (!req.file && !isEdit) {
                     return res.status(400).json({
                         error: 'Archivo no recibido',

@@ -9,9 +9,10 @@ const TIPO_LABELS = {
   3: 'Word',
   4: 'Excel',
   5: 'PDF',
+  8: 'AR',
 };
 
-const TIPOS_ORDER = [1, 2, 3, 4, 5];
+const TIPOS_ORDER = [1, 2, 3, 4, 5, 8];
 
 /**
  * Obtiene el array de conteos: [{ TIPO, Total }, ...] para Videos, Audios, Word, Excel, PDF, Productos.
@@ -25,11 +26,12 @@ function getTabCounts(db, callback) {
     Word: 0,
     Excel: 0,
     PDF: 0,
+    AR: 0,
     Productos: 0,
   };
 
   const sqlMultimedia =
-    'SELECT MUL_TIPO AS tipo, COUNT(*) AS Total FROM CAS_MULTIMEDIA WHERE MUL_TIPO IN (1, 2, 3, 4, 5) GROUP BY MUL_TIPO';
+    'SELECT MUL_TIPO AS tipo, COUNT(*) AS Total FROM CAS_MULTIMEDIA WHERE MUL_TIPO IN (1, 2, 3, 4, 5, 8) GROUP BY MUL_TIPO';
   const sqlProductos = 'SELECT COUNT(*) AS Total FROM CAS_PRODUCTOS';
 
   db.query(sqlMultimedia, (err, rows) => {

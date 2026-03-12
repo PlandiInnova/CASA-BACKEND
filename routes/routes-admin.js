@@ -82,9 +82,9 @@ module.exports = () => {
             }
     
             const tipoStr = tipo.toString();
-            // console.log('📤 Tipo de contenido recibido:', tipoStr);
+            console.log('📤 Tipo de contenido recibido:', tipoStr);
     
-            const fileTypes = ['Audios', 'Word', 'Excel', 'PDF'];
+            const fileTypes = ['Audios', 'Word', 'Excel', 'PDF', 'AR'];
             
             if (fileTypes.includes(tipoStr)) {
                 uploadController.uploadFile(req, res, (err) => {
