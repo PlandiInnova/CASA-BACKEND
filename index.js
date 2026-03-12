@@ -205,6 +205,9 @@ app.use('/casa/launcher/productos/', casaLauncherProductosRoutes());
 const desktopAuthRoutes = require('./routes/casa-launcher/routes-desktop-auth');
 app.use('/casa/desktop-auth/', dbMiddleware, desktopAuthRoutes());
 
+const casaLauncherUpdateRoutes = require('./routes/casa-launcher/routes-casa-launcher-update');
+app.use('/casa/launcher/update/', casaLauncherUpdateRoutes());
+
 app.use((req, res) => {
     res.status(404).json({
         success: false,
