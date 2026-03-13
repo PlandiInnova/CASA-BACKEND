@@ -146,7 +146,7 @@ exports.handleUpload = async (req, res) => {
             });
         }
 
-        const allowedContentTypes = ['Videos', 'Audios', 'Word', 'Excel', 'PDF', 'AR'];
+        const allowedContentTypes = ['Videos', 'Audios', 'Word', 'Excel', 'PDF', 'AR', 'Juegos'];
         if (!allowedContentTypes.includes(req.body.type)) {
             return res.status(400).json({
                 error: 'Tipo de contenido no válido',
@@ -168,11 +168,97 @@ exports.handleUpload = async (req, res) => {
             'Word': '3',
             'Excel': '4',
             'PDF': '5',
+            'Juegos': '6',
             'AR': '8',
         };
 
         switch (req.body.type) {
-            case 'Audios':
+            case 'Audios': {
+                const audioFileUploaded = req.file;
+                const audioUrlProvided = req.body.audio_url;
+
+                if (!audioUrlProvided && !audioFileUploaded && !isEdit) {
+                    return res.status(400).json({
+                        error: 'Audio requerido',
+                        detalle: 'Debes proporcionar un enlace de audio o subir un archivo de audio'
+                    });
+                }
+
+                let existingAudioPath = '';
+                if (isEdit) {
+                    const currentAudio = await new Promise((resolve, reject) => {
+                        req.db.query(
+                            'SELECT MUL_ENLACE FROM CAS_MULTIMEDIA WHERE MUL_ID = ?',
+                            [multimediaId],
+                            (error, results) => {
+                                if (error) reject(error);
+                                else resolve(results[0]?.MUL_ENLACE || '');
+                            }
+                        );
+                    });
+                    existingAudioPath = currentAudio || '';
+                }
+
+                if (audioFileUploaded) {
+                    const fullPath = audioFileUploaded.path;
+                    metadata = extractRelativePath(fullPath);
+
+                    if (isEdit && existingAudioPath && !existingAudioPath.startsWith('http')) {
+                        normalizeAndDeleteOldFile(existingAudioPath, baseDir);
+                    }
+                } else if (audioUrlProvided) {
+                    const audioURL = cleanMetadata(audioUrlProvided);
+                    metadata = audioURL;
+
+                    if (isEdit && existingAudioPath && !existingAudioPath.startsWith('http') && audioURL.startsWith('http')) {
+                        normalizeAndDeleteOldFile(existingAudioPath, baseDir);
+                    }
+                } else if (isEdit) {
+                    const existingMetadata = cleanMetadata(req.body.existing_metadata || existingAudioPath || '');
+                    if (existingMetadata && existingMetadata.startsWith('http')) {
+                        metadata = existingMetadata;
+                    } else {
+                        metadata = extractRelativePath(existingMetadata);
+                    }
+                } else {
+                    const existingMetadata = cleanMetadata(req.body.existing_metadata || '');
+                    if (existingMetadata && existingMetadata.startsWith('http')) {
+                        metadata = existingMetadata;
+                    } else {
+                        metadata = extractRelativePath(existingMetadata);
+                    }
+                }
+                break;
+            }
+            case 'Juegos': {
+                const juegoValor =
+                    req.body.game_url ||
+                    req.body.game_data;
+
+                if (!juegoValor && !isEdit) {
+                    return res.status(400).json({
+                        error: 'Cadena de juego requerida',
+                        detalle: 'Debes proporcionar el string del juego (por ejemplo, una URL o un identificador)'
+                    });
+                }
+
+                if (juegoValor) {
+                    metadata = cleanMetadata(juegoValor);
+                } else if (isEdit) {
+                    const existingValue = await new Promise((resolve, reject) => {
+                        req.db.query(
+                            'SELECT MUL_ENLACE FROM CAS_MULTIMEDIA WHERE MUL_ID = ?',
+                            [multimediaId],
+                            (error, results) => {
+                                if (error) reject(error);
+                                else resolve(results[0]?.MUL_ENLACE || '');
+                            }
+                        );
+                    });
+                    metadata = cleanMetadata(existingValue || req.body.existing_metadata || '');
+                }
+                break;
+            }
             case 'Word':
             case 'Excel':
             case 'PDF':
@@ -439,15 +525,13 @@ exports.handleUpload = async (req, res) => {
 
         let cleanedMetadata = cleanMetadata(metadata);
         let normalizedMetadata = cleanedMetadata;
-        if (cleanedMetadata && !cleanedMetadata.includes('youtube.com') && !cleanedMetadata.includes('youtu.be')) {
+
+        if (req.body.type !== 'Juegos' && cleanedMetadata && !cleanedMetadata.includes('youtube.com') && !cleanedMetadata.includes('youtu.be')) {
             normalizedMetadata = extractRelativePath(cleanedMetadata);
         }
         
         let normalizedIconPath = iconPath || '';
-        
-        // console.log('🔍 DEBUG - Antes de normalización final:');
-        // console.log('  - iconPath:', iconPath);
-        // console.log('  - req.body.type:', req.body.type);
+    
         
         if (req.body.type === 'Videos') {
             if (iconPath) {
@@ -507,6 +591,8 @@ exports.handleUpload = async (req, res) => {
             status: 1,
             usuario_creacion: 1,
         };
+
+        console.log('🔍 DEBUG - registro:', registro);
 
         let dbResult;
 
