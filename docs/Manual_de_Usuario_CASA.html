@@ -1,0 +1,257 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word">
+<head>
+<meta charset="UTF-8">
+<meta name="ProgId" content="Word.Document">
+<meta name="Generator" content="Microsoft Word">
+<meta name="Originator" content="Microsoft Word">
+<title>Manual de Usuario - Sistema CASA Backend</title>
+<style>
+<!--
+body { font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; font-size: 11pt; line-height: 1.35; margin: 1.5cm 2cm; color: #333; }
+h1 { font-size: 22pt; color: #1a365d; border-bottom: 3px solid #2b6cb0; padding-bottom: 8px; margin-top: 24px; page-break-after: avoid; }
+h2 { font-size: 16pt; color: #2b6cb0; margin-top: 20px; page-break-after: avoid; }
+h3 { font-size: 13pt; color: #2c5282; margin-top: 14px; page-break-after: avoid; }
+p { margin: 0 0 10px 0; text-align: justify; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 10pt; page-break-inside: avoid; }
+th { background: #2b6cb0; color: white; padding: 8px 10px; text-align: left; font-weight: bold; }
+td { border: 1px solid #cbd5e0; padding: 6px 10px; }
+tr:nth-child(even) { background: #f7fafc; }
+ul, ol { margin: 8px 0 10px 20px; }
+li { margin-bottom: 4px; }
+.toc { background: #edf2f7; padding: 16px 20px; margin: 20px 0; border-left: 4px solid #2b6cb0; }
+.toc-title { font-size: 14pt; font-weight: bold; color: #1a365d; margin-bottom: 10px; }
+.toc-item { margin: 4px 0; }
+.note { background: #ebf8ff; border-left: 4px solid #3182ce; padding: 10px 14px; margin: 12px 0; }
+.warning { background: #fffaf0; border-left: 4px solid #dd6b20; padding: 10px 14px; margin: 12px 0; }
+.code { font-family: 'Consolas', 'Courier New', monospace; background: #f7fafc; padding: 2px 6px; border: 1px solid #e2e8f0; font-size: 10pt; }
+pre { font-family: 'Consolas', 'Courier New', monospace; background: #2d3748; color: #e2e8f0; padding: 12px 16px; overflow-x: auto; font-size: 9pt; margin: 10px 0; }
+.caption { font-size: 9pt; color: #718096; margin-top: 4px; }
+-->
+</style>
+</head>
+<body>
+
+<h1>Manual de Usuario</h1>
+<h2>Sistema CASA Backend</h2>
+<p><strong>Versión del documento:</strong> 1.0</p>
+<p><strong>Fecha:</strong> Marzo 2025</p>
+<hr>
+
+<h2>Índice</h2>
+<div class="toc">
+<div class="toc-title">Contenido</div>
+<div class="toc-item">1. Introducción</div>
+<div class="toc-item">2. Descripción general del sistema</div>
+<div class="toc-item">3. Módulo de administración (Admin)</div>
+<div class="toc-item">4. Login y autenticación</div>
+<div class="toc-item">5. Licencias (CASA Web)</div>
+<div class="toc-item">6. Multimedia (CASA Web)</div>
+<div class="toc-item">7. CASA Launcher</div>
+<div class="toc-item">8. Autenticación de escritorio (Desktop Auth)</div>
+<div class="toc-item">9. Configuración y variables de entorno</div>
+<div class="toc-item">10. Seguridad y buenas prácticas</div>
+<div class="toc-item">11. Referencia de API (resumen de endpoints)</div>
+<div class="toc-item">12. Comunicación en tiempo real (Socket.IO)</div>
+<div class="toc-item">13. Manejo de errores</div>
+</div>
+
+<h2>1. Introducción</h2>
+<p>Este manual describe el uso del backend del sistema CASA, una API REST desarrollada con Node.js y Express que da soporte a la administración de contenidos multimedia, productos, ventas, paquetes y licencias, así como a la autenticación de administradores, del launcher de escritorio y de la web.</p>
+<p>El sistema está pensado para ser consumido por:</p>
+<ul>
+<li>Un panel de administración (frontend admin)</li>
+<li>La aplicación CASA Launcher (escritorio)</li>
+<li>La web CASA (licencias, multimedia, ebooks)</li>
+</ul>
+
+<h2>2. Descripción general del sistema</h2>
+<h3>2.1 Propósito</h3>
+<p>El backend CASA centraliza la lógica de negocio, el acceso a la base de datos MySQL y la exposición de servicios REST y en tiempo real (Socket.IO) para gestionar ventas, paquetes, licencias, productos descargables y contenido multimedia (audios, documentos, vídeos, etc.).</p>
+<h3>2.2 Tecnologías principales</h3>
+<ul>
+<li><strong>Node.js</strong> y <strong>Express 5</strong> para la API REST.</li>
+<li><strong>MySQL</strong> como base de datos (pool de conexiones).</li>
+<li><strong>Socket.IO</strong> para eventos en tiempo real (subidas, eliminaciones, salas por licencia).</li>
+<li><strong>JWT</strong> para autenticación de administradores y escritorio.</li>
+<li><strong>Helmet</strong>, <strong>CORS</strong> y <strong>express-rate-limit</strong> para seguridad.</li>
+<li><strong>Multer</strong> para la subida de archivos; <strong>ExcelJS</strong> y <strong>Nodemailer</strong> según funcionalidad.</li>
+</ul>
+<h3>2.3 Prefijo base de las rutas</h3>
+<p>Todas las rutas de la API están bajo el prefijo <span class="code">/casa/</span>. No se utiliza el segmento <span class="code">/v1/</span> en el código actual.</p>
+
+<h2>3. Módulo de administración (Admin)</h2>
+<p>El módulo admin (<span class="code">/casa/admin/</span>) permite gestionar ventas, paquetes, licencias, pedidos, productos y multimedia. Requiere autenticación de administrador (JWT) según la configuración del frontend.</p>
+<h3>3.1 Ventas</h3>
+<ul>
+<li><strong>Registrar venta:</strong> <span class="code">POST /casa/admin/registrar-venta</span></li>
+<li><strong>Tipos de venta:</strong> <span class="code">GET /casa/admin/tipos-venta</span></li>
+<li><strong>Listar ventas:</strong> <span class="code">GET /casa/admin/ventas</span></li>
+<li><strong>Eliminar venta:</strong> <span class="code">DELETE /casa/admin/ventas/:id</span></li>
+</ul>
+<h3>3.2 Paquetes</h3>
+<ul>
+<li><strong>Registrar paquete:</strong> <span class="code">POST /casa/admin/registrar-paquete</span></li>
+<li><strong>Listar paquetes:</strong> <span class="code">GET /casa/admin/paquetes</span></li>
+<li><strong>Paquetes completos (con datos asociados):</strong> <span class="code">GET /casa/admin/paquetes-completos</span></li>
+<li><strong>Actualizar paquete:</strong> <span class="code">PUT /casa/admin/paquetes/:id</span></li>
+<li><strong>Eliminar paquete:</strong> <span class="code">DELETE /casa/admin/paquetes/:id</span></li>
+</ul>
+<h3>3.3 Licencias</h3>
+<ul>
+<li><strong>Generar licencias (lote):</strong> <span class="code">POST /casa/admin/licencias</span></li>
+<li><strong>Licencias completas:</strong> <span class="code">GET /casa/admin/licencias-completas</span></li>
+<li><strong>Licencias para distribución:</strong> <span class="code">GET /casa/admin/licencias-distribucion</span></li>
+<li><strong>Actualizar estado de licencia:</strong> <span class="code">PUT /casa/admin/licencias/:id/status</span></li>
+</ul>
+<h3>3.4 Pedidos</h3>
+<ul>
+<li><strong>Pedidos completos:</strong> <span class="code">GET /casa/admin/pedidos-completos</span></li>
+</ul>
+<h3>3.5 Filtros y conteos</h3>
+<ul>
+<li><strong>Filtro grados:</strong> <span class="code">GET /casa/admin/filter-grados</span></li>
+<li><strong>Filtro subtipos:</strong> <span class="code">GET /casa/admin/filter-subtipos</span></li>
+<li><strong>Conteos por tipo (multimedia/productos):</strong> <span class="code">GET /casa/admin/countabs</span></li>
+<li><strong>Actualizar estado (multimedia):</strong> <span class="code">GET /casa/admin/update-status</span></li>
+</ul>
+<h3>3.6 Productos</h3>
+<ul>
+<li><strong>Listar productos:</strong> <span class="code">GET /casa/admin/productos</span></li>
+<li><strong>Archivos de un producto:</strong> <span class="code">GET /casa/admin/productos/archivos?pro_files=...</span> (parámetro <span class="code">pro_files</span> obligatorio)</li>
+<li><strong>Actualizar producto:</strong> <span class="code">PUT /casa/admin/productos/:id</span></li>
+<li><strong>Añadir archivos a producto:</strong> <span class="code">POST /casa/admin/productos/:id/archivos</span></li>
+<li><strong>Quitar archivo de producto:</strong> <span class="code">DELETE /casa/admin/productos/:id/archivos/:filename</span></li>
+<li><strong>Eliminar producto:</strong> <span class="code">DELETE /casa/admin/delete-productos/:id</span></li>
+</ul>
+<h3>3.7 Subida de archivos</h3>
+<ul>
+<li><strong>Subida multimedia:</strong> <span class="code">POST /casa/admin/upload?type=...</span>. El parámetro <span class="code">type</span> es obligatorio. Valores soportados: Audios, Word, Excel, PDF, AR, Videos (y otros según implementación).</li>
+<li><strong>Subida de producto:</strong> <span class="code">POST /casa/admin/upload-prod</span></li>
+</ul>
+<h3>3.8 Multimedia</h3>
+<ul>
+<li><strong>Listar multimedia:</strong> <span class="code">GET /casa/admin/multimedia</span></li>
+<li><strong>Eliminar multimedia:</strong> <span class="code">DELETE /casa/admin/delete-multimedia</span></li>
+</ul>
+
+<h2>4. Login y autenticación</h2>
+<h3>4.1 Login de administrador</h3>
+<p><strong>Base:</strong> <span class="code">/casa/login/</span></p>
+<ul>
+<li><strong>Login:</strong> <span class="code">POST /casa/login/login</span>. Se envían usuario y contraseña; el backend utiliza el procedimiento almacenado <span class="code">LOGIN_USUARIO_ADMIN</span> y devuelve un token JWT para las rutas de administración.</li>
+</ul>
+
+<h2>5. Licencias (CASA Web)</h2>
+<p><strong>Base:</strong> <span class="code">/casa/licencias/</span>. Endpoints usados por la web para gestión de licencias y usuarios (ebooks, recuperación de contraseña, etc.).</p>
+<table>
+<tr><th>Método</th><th>Ruta</th><th>Descripción</th></tr>
+<tr><td>POST</td><td>/casa/licencias/existeLicencia</td><td>Comprobar si existe una licencia</td></tr>
+<tr><td>POST</td><td>/casa/licencias/mostrarLicenciasUsuarios</td><td>Licencias de usuarios</td></tr>
+<tr><td>POST</td><td>/casa/licencias/insertarUsuario</td><td>Insertar usuario</td></tr>
+<tr><td>POST</td><td>/casa/licencias/agregarProductos</td><td>Agregar productos</td></tr>
+<tr><td>POST</td><td>/casa/licencias/loginEbooks</td><td>Login usuario ebooks</td></tr>
+<tr><td>POST</td><td>/casa/licencias/recuperarPassword</td><td>Recuperar contraseña</td></tr>
+<tr><td>POST</td><td>/casa/licencias/validarCorreo</td><td>Validar correo</td></tr>
+</table>
+
+<h2>6. Multimedia (CASA Web)</h2>
+<p><strong>Base:</strong> <span class="code">/casa/multimedia/</span>. Endpoints para consultar multimedia y filtros desde la web.</p>
+<table>
+<tr><th>Método</th><th>Ruta</th><th>Descripción</th></tr>
+<tr><td>POST</td><td>/casa/multimedia/mostrarMultimedia</td><td>Listar multimedia</td></tr>
+<tr><td>POST</td><td>/casa/multimedia/mostrarGradosSubtipo</td><td>Grados y subtipo</td></tr>
+<tr><td>POST</td><td>/casa/multimedia/mostrarMultimediaSubtipo</td><td>Multimedia por subtipo</td></tr>
+</table>
+
+<h2>7. CASA Launcher</h2>
+<p>Endpoints usados por la aplicación de escritorio (Launcher) para login, productos y actualizaciones.</p>
+<h3>7.1 Autenticación Launcher</h3>
+<p><strong>Base:</strong> <span class="code">/casa/launcher/auth/</span></p>
+<ul>
+<li><strong>Login:</strong> <span class="code">POST /casa/launcher/auth/login</span> (usuario; en esta ruta no se usa JWT en la descripción actual).</li>
+</ul>
+<h3>7.2 Productos Launcher</h3>
+<p><strong>Base:</strong> <span class="code">/casa/launcher/productos/</span></p>
+<ul>
+<li><strong>Productos del usuario:</strong> <span class="code">GET /casa/launcher/productos/?usuario=...</span> (parámetro <span class="code">usuario</span> en query).</li>
+</ul>
+<h3>7.3 Actualización Launcher</h3>
+<p><strong>Base:</strong> <span class="code">/casa/launcher/update/</span></p>
+<ul>
+<li><strong>Información de actualización:</strong> <span class="code">GET /casa/launcher/update/info</span></li>
+</ul>
+
+<h2>8. Autenticación de escritorio (Desktop Auth)</h2>
+<p><strong>Base:</strong> <span class="code">/casa/desktop-auth/</span>. Generación y validación de tokens para escritorio.</p>
+<table>
+<tr><th>Método</th><th>Ruta</th><th>Descripción</th></tr>
+<tr><td>POST</td><td>/casa/desktop-auth/generate</td><td>Generar token de escritorio</td></tr>
+<tr><td>POST</td><td>/casa/desktop-auth/generate-from-user</td><td>Generar token desde usuario</td></tr>
+<tr><td>POST</td><td>/casa/desktop-auth/validate</td><td>Validar token</td></tr>
+</table>
+
+<h2>9. Configuración y variables de entorno</h2>
+<p>La aplicación se configura mediante un archivo <span class="code">.env</span> en la raíz del proyecto (no incluido en el repositorio por seguridad).</p>
+<h3>9.1 Variables principales</h3>
+<table>
+<tr><th>Variable</th><th>Uso</th></tr>
+<tr><td>PORT</td><td>Puerto del servidor HTTP</td></tr>
+<tr><td>NODE_ENV</td><td>development o production (configuración de BD y mensajes de error)</td></tr>
+<tr><td>ALLOWED_ORIGINS</td><td>Orígenes CORS y Socket.IO (separados por comas)</td></tr>
+<tr><td>CASA_HOST_DEV, CASA_PORT_DEV, CASA_DATABASE_DEV, CASA_USERNAME_DEV, CASA_PASSWORD_DEV</td><td>Base de datos en desarrollo</td></tr>
+<tr><td>CASA_HOST, CASA_PORT, CASA_DATABASE, CASA_USERNAME, CASA_PASSWORD</td><td>Base de datos en producción</td></tr>
+<tr><td>JWT_SECRET</td><td>Clave para firmar el JWT del login admin</td></tr>
+<tr><td>CASA_LAUNCHER_JWT_SECRET / CALA_JWT_SECRET</td><td>Clave JWT para el Launcher</td></tr>
+<tr><td>UPLOAD_BASE_PATH</td><td>Ruta base de subida de archivos y estáticos en producción (por defecto /var/www/html)</td></tr>
+</table>
+<h3>9.2 Archivos estáticos</h3>
+<p>Los archivos estáticos se sirven en la ruta <span class="code">/FILES/static</span>. En producción el directorio físico es el indicado por <span class="code">UPLOAD_BASE_PATH</span>; en desarrollo se usa una ruta relativa al proyecto.</p>
+
+<h2>10. Seguridad y buenas prácticas</h2>
+<ul>
+<li><strong>Helmet:</strong> Cabeceras de seguridad HTTP (CSP, COOP, Permissions Policy).</li>
+<li><strong>CORS:</strong> Solo se permiten orígenes definidos en <span class="code">ALLOWED_ORIGINS</span>.</li>
+<li><strong>Rate limiting:</strong> Límite de 1000 solicitudes por 15 minutos por IP.</li>
+<li><strong>Validación:</strong> express-validator en los datos de entrada.</li>
+<li><strong>JWT:</strong> No exponer <span class="code">JWT_SECRET</span> ni claves similares; usar valores fuertes en producción.</li>
+</ul>
+
+<h2>11. Referencia de API (resumen de endpoints)</h2>
+<p>Resumen de todas las rutas por módulo para consulta rápida.</p>
+<table>
+<tr><th>Módulo</th><th>Base</th><th>Acciones principales</th></tr>
+<tr><td>Admin</td><td>/casa/admin/</td><td>Ventas, paquetes, licencias, pedidos, filtros, productos, upload, multimedia</td></tr>
+<tr><td>Login</td><td>/casa/login/</td><td>POST login (admin)</td></tr>
+<tr><td>Licencias Web</td><td>/casa/licencias/</td><td>existeLicencia, mostrarLicenciasUsuarios, insertarUsuario, agregarProductos, loginEbooks, recuperarPassword, validarCorreo</td></tr>
+<tr><td>Multimedia Web</td><td>/casa/multimedia/</td><td>mostrarMultimedia, mostrarGradosSubtipo, mostrarMultimediaSubtipo</td></tr>
+<tr><td>Launcher Auth</td><td>/casa/launcher/auth/</td><td>POST login</td></tr>
+<tr><td>Launcher Productos</td><td>/casa/launcher/productos/</td><td>GET / (query usuario)</td></tr>
+<tr><td>Launcher Update</td><td>/casa/launcher/update/</td><td>GET info</td></tr>
+<tr><td>Desktop Auth</td><td>/casa/desktop-auth/</td><td>generate, generate-from-user, validate</td></tr>
+</table>
+
+<h2>12. Comunicación en tiempo real (Socket.IO)</h2>
+<p>El backend emite y escucha eventos Socket.IO para notificar subidas, eliminaciones y salas por licencia.</p>
+<ul>
+<li><strong>client-upload-complete</strong> → el servidor emite <strong>new-upload</strong> a la sala global.</li>
+<li><strong>client-complete</strong> → el servidor emite <strong>new-issue</strong> a la sala global.</li>
+<li><strong>data-delete</strong> → el servidor emite <strong>new-delete</strong> a la sala global.</li>
+<li><strong>join-license-room</strong> / <strong>leave-license-room</strong>: salas por sesión para licencias.</li>
+</ul>
+<p>Socket.IO está configurado con recuperación de estado de conexión (hasta 2 minutos).</p>
+
+<h2>13. Manejo de errores</h2>
+<p>Las respuestas de error de la API siguen un formato JSON estructurado:</p>
+<pre>{
+  "success": false,
+  "status": 500,
+  "message": "Mensaje de error",
+  "stack": "Stack trace (solo en desarrollo)"
+}</pre>
+<p>Se gestionan errores síncronos críticos, promesas rechazadas, advertencias, errores HTTP, de Socket.IO y de Express. Las rutas no encontradas devuelven 404 en formato JSON.</p>
+
+<hr>
+<p style="font-size: 9pt; color: #718096;"><strong>Manual de Usuario - Sistema CASA Backend</strong> · Versión 1.0 · Generado para uso con Microsoft Word. Para obtener un archivo .docx, abra este archivo en Word y use Guardar como → Documento de Word (.docx).</p>
+
+</body>
+</html>

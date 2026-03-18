@@ -48,6 +48,7 @@ module.exports = () => {
 
     router.get('/filter-grados', filtros.getGradosFilter);
     router.get('/filter-subtipos', filtros.getSubtipoFilter);
+    router.get('/filter-materias', filtros.getMateriasFilter);
     router.get('/countabs', getCountabs);
 
     router.get('/update-status', updateStatus);

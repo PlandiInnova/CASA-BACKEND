@@ -131,6 +131,7 @@ exports.handleUpload = async (req, res) => {
         const descripcion = req.body.mul_descripcion || req.body.descripcion || '';
         const grado_id = req.body.mul_grado || req.body.grado;
         const subtipo_id = req.body.mul_subtipo || req.body.subtipo;
+        const materia_id = req.body.mul_materia || req.body.materia;
 
         const missingFields = [];
 
@@ -138,6 +139,7 @@ exports.handleUpload = async (req, res) => {
         if (!titulo) missingFields.push('titulo');
         if (!grado_id) missingFields.push('grado');
         if (!subtipo_id) missingFields.push('subtipo');
+        if (!materia_id) missingFields.push('materia');
 
         if (missingFields.length > 0) {
             return res.status(400).json({
@@ -590,6 +592,7 @@ exports.handleUpload = async (req, res) => {
             fecha_creacion: new Date(),
             status: 1,
             usuario_creacion: 1,
+            materia_id: parseInt(materia_id)
         };
 
         console.log('🔍 DEBUG - registro:', registro);
@@ -599,7 +602,7 @@ exports.handleUpload = async (req, res) => {
         if (isEdit) {
             dbResult = await new Promise((resolve, reject) => {
                 req.db.query(
-                    `UPDATE CAS_MULTIMEDIA SET MUL_TITULO = ?, MUL_DESCRIPCION = ?, MUL_GRA_ID = ?, MUL_SBT_ID = ?, MUL_TIPO = ?, MUL_IMAGEN = ?, MUL_ENLACE = ?, MUL_FECHA_CREACION = ?, MUL_STATUS = ?, MUL_UAD_ID = ? WHERE MUL_ID = ?`,
+                    `UPDATE CAS_MULTIMEDIA SET MUL_TITULO = ?, MUL_DESCRIPCION = ?, MUL_GRA_ID = ?, MUL_SBT_ID = ?, MUL_TIPO = ?, MUL_IMAGEN = ?, MUL_ENLACE = ?, MUL_FECHA_CREACION = ?, MUL_STATUS = ?, MUL_UAD_ID = ?, MUL_MAT_ID = ? WHERE MUL_ID = ?`,
                     [
                         registro.titulo,
                         registro.descripcion,
@@ -611,6 +614,7 @@ exports.handleUpload = async (req, res) => {
                         registro.fecha_creacion,
                         registro.status,
                         registro.usuario_creacion,
+                        registro.materia_id,
                         multimediaId
                     ],
                     (error, results) => {
@@ -627,7 +631,7 @@ exports.handleUpload = async (req, res) => {
         } else {
             dbResult = await new Promise((resolve, reject) => {
                 req.db.query(
-                    `INSERT INTO CAS_MULTIMEDIA (MUL_TITULO, MUL_DESCRIPCION, MUL_GRA_ID, MUL_SBT_ID, MUL_TIPO, MUL_IMAGEN, MUL_ENLACE, MUL_FECHA_CREACION, MUL_STATUS, MUL_UAD_ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    `INSERT INTO CAS_MULTIMEDIA (MUL_TITULO, MUL_DESCRIPCION, MUL_GRA_ID, MUL_SBT_ID, MUL_TIPO, MUL_IMAGEN, MUL_ENLACE, MUL_FECHA_CREACION, MUL_STATUS, MUL_UAD_ID, MUL_MAT_ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                     [
                         registro.titulo,
                         registro.descripcion,
@@ -638,7 +642,8 @@ exports.handleUpload = async (req, res) => {
                         registro.metadata,
                         registro.fecha_creacion,
                         registro.status,
-                        registro.usuario_creacion
+                        registro.usuario_creacion,
+                        registro.materia_id
                     ],
                     (error, results) => {
                         if (error) {
