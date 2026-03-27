@@ -1,4 +1,4 @@
-exports.allMultimedia = (req, res) => {    
+exports.allMultimedia = (req, res) => {
     try {
         const { subtipo, grado } = req.body;
 
@@ -23,7 +23,7 @@ exports.allMultimedia = (req, res) => {
     }
 };
 
-exports.allGradosSubtipo = (req, res) => {    
+exports.allGradosSubtipo = (req, res) => {
     try {
         const { subtipo } = req.body;
 
@@ -49,7 +49,7 @@ exports.allGradosSubtipo = (req, res) => {
 };
 
 
-exports.allMultimediaSubtipo = (req, res) => {    
+exports.allMultimediaSubtipo = (req, res) => {
     try {
         const { subtipo } = req.body;
 
@@ -67,6 +67,29 @@ exports.allMultimediaSubtipo = (req, res) => {
         });
     } catch (error) {
         console.error('Error en la ruta de allMultimediaSubtipo:', error);
+        res.status(500).json({
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+};
+
+exports.allArItems = (req, res) => {
+    try {
+        const query = 'CALL mostrarArItems()';
+
+        req.db.query(query, (error, results) => {
+            if (error) {
+                console.error('Error en la consulta de mostrarArItems:', error);
+                return res.status(500).json({
+                    error: 'Error al obtener los ítems de AR',
+                    details: error.message
+                });
+            }
+            res.json(results[0]);
+        });
+    } catch (error) {
+        console.error('Error en la ruta de allArItems:', error);
         res.status(500).json({
             error: 'Error interno del servidor',
             details: error.message
