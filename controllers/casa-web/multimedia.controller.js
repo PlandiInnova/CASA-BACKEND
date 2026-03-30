@@ -73,3 +73,78 @@ exports.allMultimediaSubtipo = (req, res) => {
         });
     }
 };
+
+exports.allMaterias = (req, res) => {    
+    try {
+        const { grado } = req.body;
+
+        const query = 'CALL mostrarMaterias(?)';
+
+        req.db.query(query, [grado], (error, results) => {
+            if (error) {
+                console.error('Error en la consulta de mostrarMaterias:', error);
+                return res.status(500).json({
+                    error: 'Error al obtener las materias',
+                    details: error.message
+                });
+            }
+            res.json(results[0]);
+        });
+    } catch (error) {
+        console.error('Error en la ruta de mostrarMaterias:', error);
+        res.status(500).json({
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+};
+
+exports.allMultimediaPorMaterias = (req, res) => {    
+    try {
+        const { subtipo, materiaId } = req.body;
+
+        const query = 'CALL mostrarMultimediaPorMaterias(?,?)';
+
+        req.db.query(query, [subtipo, materiaId], (error, results) => {
+            if (error) {
+                console.error('Error en la consulta de mostrarMultimediaPorMaterias:', error);
+                return res.status(500).json({
+                    error: 'Error al obtener la multimedia',
+                    details: error.message
+                });
+            }
+            res.json(results[0]);
+        });
+    } catch (error) {
+        console.error('Error en la ruta de allMultimediaPorMaterias:', error);
+        res.status(500).json({
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+};
+
+exports.allPorTipoMultimedia = (req, res) => {    
+    try {
+        const { subtipo, materiaId, tipoMulti } = req.body;
+
+        const query = 'CALL mostrarPorTipoMultimedia(?,?,?)';
+
+        req.db.query(query, [subtipo, materiaId, tipoMulti], (error, results) => {
+            if (error) {
+                console.error('Error en la consulta de mostrarPorTipoMultimedia:', error);
+                return res.status(500).json({
+                    error: 'Error al obtener la multimedia',
+                    details: error.message
+                });
+            }
+            res.json(results[0]);
+        });
+    } catch (error) {
+        console.error('Error en la ruta de allPorTipoMultimedia:', error);
+        res.status(500).json({
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+};

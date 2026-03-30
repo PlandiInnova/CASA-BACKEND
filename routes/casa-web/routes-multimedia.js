@@ -7,5 +7,8 @@ module.exports = () => {
     router.post('/mostrarMultimedia', multimediaController.allMultimedia);
     router.post('/mostrarGradosSubtipo', multimediaController.allGradosSubtipo);
     router.post('/mostrarMultimediaSubtipo', multimediaController.allMultimediaSubtipo);
+    router.post('/mostrarMaterias', multimediaController.allMaterias);
+    router.post('/mostrarMultimediaPorMaterias', multimediaController.allMultimediaPorMaterias);
+    router.post('/mostrarPorTipoMultimedia', multimediaController.allPorTipoMultimedia);
     return router;
 }
