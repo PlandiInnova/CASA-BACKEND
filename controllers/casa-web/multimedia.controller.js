@@ -74,6 +74,31 @@ exports.allMultimediaSubtipo = (req, res) => {
     }
 };
 
+exports.allMaterias = (req, res) => {
+    try {
+        const { grado } = req.body;
+
+        const query = 'CALL mostrarMaterias(?)';
+
+        req.db.query(query, [grado], (error, results) => {
+            if (error) {
+                console.error('Error en la consulta de mostrarMaterias:', error);
+                return res.status(500).json({
+                    error: 'Error al obtener las materias',
+                    details: error.message
+                });
+            }
+            res.json(results[0]);
+        });
+    } catch (error) {
+        console.error('Error en la ruta de allMaterias:', error);
+        res.status(500).json({
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+};
+
 exports.allArItems = (req, res) => {
     try {
         const query = 'CALL mostrarArItems()';
@@ -97,7 +122,7 @@ exports.allArItems = (req, res) => {
     }
 };
 
-exports.allMultimediaPorMaterias = (req, res) => {    
+exports.allMultimediaPorMaterias = (req, res) => {
     try {
         const { subtipo, materiaId } = req.body;
 
@@ -122,7 +147,7 @@ exports.allMultimediaPorMaterias = (req, res) => {
     }
 };
 
-exports.allPorTipoMultimedia = (req, res) => {    
+exports.allPorTipoMultimedia = (req, res) => {
     try {
         const { subtipo, materiaId, tipoMulti } = req.body;
 
