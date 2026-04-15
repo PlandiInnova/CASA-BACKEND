@@ -4,7 +4,7 @@ const fs = require('fs');
 require('dotenv').config();
 
 
-const BASE_UPLOAD_PATH = process.env.NODE_ENV === 'production' 
+const BASE_UPLOAD_PATH = process.env.NODE_ENV === 'production'
     ? (process.env.UPLOAD_BASE_PATH || '/var/www/html')
     : path.resolve(__dirname, '../../../../var/www/html');
 
@@ -37,7 +37,7 @@ const fileFilter = (req, file, cb) => {
         pdf: ['application/pdf'],
         videos: ['video/mp4', 'video/webm', 'video/ogg', 'video/mpeg', 'video/quicktime', 'video/x-msvideo'],
         ar: ['model/gltf-binary', 'application/octet-stream'],
-        };
+    };
 
     if (!tipo || !allowedTypes[tipo]?.includes(file.mimetype)) {
         const error = new Error(`Tipo de archivo no permitido para ${tipo}`);
@@ -50,25 +50,25 @@ const fileFilter = (req, file, cb) => {
 
 const uploadFile = multer({
     storage: storage,
-    limits: { 
+    limits: {
         fileSize: 200 * 1024 * 1024,
     },
     fileFilter: fileFilter
 }).single('archivo');
 
 const handleFormData = (req, res, next) => {
-        const tipo = req.query.type?.toString();
-        if (tipo === 'Videos') {
-            const videoStorage = multer.diskStorage({
-                destination: (req, file, cb) => {
-                    if (file.fieldname === 'videofile') {
-                        const uploadPath = path.join(BASE_UPLOAD_PATH, 'multimedia/videos');
-                        fs.mkdir(uploadPath, { recursive: true }, (error) => {
-                            if (error) return cb(error);
-                            cb(null, uploadPath);
-                        });
-                    } else {
-                        const uploadPath = path.join(BASE_UPLOAD_PATH, 'multimedia/thumbnails');
+    const tipo = req.query.type?.toString();
+    if (tipo === 'Videos') {
+        const videoStorage = multer.diskStorage({
+            destination: (req, file, cb) => {
+                if (file.fieldname === 'videofile') {
+                    const uploadPath = path.join(BASE_UPLOAD_PATH, 'multimedia/videos');
+                    fs.mkdir(uploadPath, { recursive: true }, (error) => {
+                        if (error) return cb(error);
+                        cb(null, uploadPath);
+                    });
+                } else {
+                    const uploadPath = path.join(BASE_UPLOAD_PATH, 'multimedia/thumbnails');
                     fs.mkdir(uploadPath, { recursive: true }, (error) => {
                         if (error) return cb(error);
                         cb(null, uploadPath);
@@ -275,7 +275,7 @@ exports.handleUpload = async (req, res) => {
                 if (req.file) {
                     const fullPath = req.file.path;
                     metadata = extractRelativePath(fullPath);
-                    
+
                     if (isEdit) {
                         const existingFile = await new Promise((resolve, reject) => {
                             req.db.query(
@@ -287,7 +287,7 @@ exports.handleUpload = async (req, res) => {
                                 }
                             );
                         });
-                        
+
                         if (existingFile && existingFile !== metadata) {
                             normalizeAndDeleteOldFile(existingFile, baseDir);
                         }
@@ -315,14 +315,14 @@ exports.handleUpload = async (req, res) => {
             case 'Videos':
                 const videoFileUploaded = req.files?.videofile?.[0];
                 const videoUrlProvided = req.body.video_url;
-            
+
                 if (!videoUrlProvided && !videoFileUploaded && !isEdit) {
                     return res.status(400).json({
                         error: 'Video requerido',
                         detalle: 'Debes proporcionar una URL de YouTube o subir un archivo de video'
                     });
                 }
-            
+
                 let existingVideoPath = '';
                 if (isEdit) {
                     const currentVideo = await new Promise((resolve, reject) => {
@@ -344,11 +344,11 @@ exports.handleUpload = async (req, res) => {
                     });
                     existingVideoPath = currentVideo || '';
                 }
-            
+
                 if (videoFileUploaded) {
                     const fullPath = videoFileUploaded.path;
                     metadata = extractRelativePath(fullPath);
-            
+
                     if (isEdit && existingVideoPath && !existingVideoPath.includes('youtube.com') && !existingVideoPath.includes('youtu.be')) {
                         normalizeAndDeleteOldFile(existingVideoPath, baseDir);
                     }
@@ -363,9 +363,9 @@ exports.handleUpload = async (req, res) => {
                         videoURL = `https://www.youtube.com/watch?v=${videoId}`;
                     }
                     metadata = videoURL;
-            
-                    if (isEdit && existingVideoPath && 
-                        !existingVideoPath.includes('youtube.com') && 
+
+                    if (isEdit && existingVideoPath &&
+                        !existingVideoPath.includes('youtube.com') &&
                         !existingVideoPath.includes('youtu.be') &&
                         videoURL.includes('youtube.com')) {
                         normalizeAndDeleteOldFile(existingVideoPath, baseDir);
@@ -375,18 +375,18 @@ exports.handleUpload = async (req, res) => {
                     const existingMetadata = cleanMetadata(req.body.existing_metadata || existingVideoPath || '');
                     metadata = extractRelativePath(existingMetadata);
                 }
-            
+
                 const imageFile = req.files?.image?.[0];
-                
+
                 const hasNewImageFile = !!imageFile && imageFile.path;
-                
+
                 // Logs de depuración
                 // console.log('🔍 DEBUG - Procesando miniatura:');
                 // console.log('  - hasNewImageFile:', hasNewImageFile);
                 // console.log('  - req.body.image:', req.body.image);
                 // console.log('  - req.body.remove_thumbnail:', req.body.remove_thumbnail);
                 // console.log('  - isEdit:', isEdit);
-                
+
                 let existingIconPath = '';
                 if (isEdit) {
                     const currentIcon = await new Promise((resolve, reject) => {
@@ -409,9 +409,9 @@ exports.handleUpload = async (req, res) => {
                     existingIconPath = currentIcon || '';
                     // console.log('  - existingIconPath:', existingIconPath);
                 }
-                
-                    const removeThumbnail = req.body.remove_thumbnail === 'true' || req.body.remove_thumbnail === true;
-                
+
+                const removeThumbnail = req.body.remove_thumbnail === 'true' || req.body.remove_thumbnail === true;
+
                 // Validar que no se intente eliminar miniatura de YouTube
                 if (removeThumbnail && existingIconPath && existingIconPath.includes('i.ytimg.com')) {
                     return res.status(400).json({
@@ -419,7 +419,7 @@ exports.handleUpload = async (req, res) => {
                         detalle: 'Las miniaturas de YouTube no se pueden eliminar, solo las personalizadas'
                     });
                 }
-                
+
                 // Validar que no se intente eliminar la miniatura por defecto
                 if (removeThumbnail && isDefaultThumbnail(existingIconPath)) {
                     return res.status(400).json({
@@ -427,14 +427,14 @@ exports.handleUpload = async (req, res) => {
                         detalle: 'La miniatura por defecto del sistema no se puede eliminar'
                     });
                 }
-                
+
                 if (hasNewImageFile) {
                     const fullPath = imageFile.path;
                     const normalizedNewPath = extractRelativePath(fullPath);
                     iconPath = normalizedNewPath;
                     // console.log('✅ Usando nueva imagen subida:', iconPath);
-                    
-                    if (isEdit && existingIconPath && 
+
+                    if (isEdit && existingIconPath &&
                         !existingIconPath.includes('i.ytimg.com') &&
                         !isDefaultThumbnail(existingIconPath)) {
                         const normalizedExisting = extractRelativePath(existingIconPath);
@@ -446,12 +446,12 @@ exports.handleUpload = async (req, res) => {
                 else if (req.body.image && req.body.image.trim() !== '') {
                     const imageValue = cleanMetadata(req.body.image);
                     // console.log('  - imageValue (después de cleanMetadata):', imageValue);
-                    
+
                     if (imageValue.includes('i.ytimg.com')) {
                         iconPath = imageValue;
                         // console.log('✅ Usando miniatura preservada de YouTube:', iconPath);
-                        if (isEdit && existingIconPath && 
-                            !existingIconPath.includes('i.ytimg.com') && 
+                        if (isEdit && existingIconPath &&
+                            !existingIconPath.includes('i.ytimg.com') &&
                             !isDefaultThumbnail(existingIconPath) &&
                             existingIconPath !== iconPath) {
                             normalizeAndDeleteOldFile(existingIconPath, baseDir);
@@ -462,7 +462,7 @@ exports.handleUpload = async (req, res) => {
                         // console.log('✅ Usando miniatura preservada del servidor:');
                         // console.log('  - imageValue original:', imageValue);
                         // console.log('  - iconPath extraído:', iconPath);
-                        if (isEdit && existingIconPath && 
+                        if (isEdit && existingIconPath &&
                             !existingIconPath.includes('i.ytimg.com') &&
                             !isDefaultThumbnail(existingIconPath)) {
                             const normalizedExisting = extractRelativePath(existingIconPath);
@@ -482,22 +482,22 @@ exports.handleUpload = async (req, res) => {
                         } else {
                             iconPath = '/multimedia/thumbnails/default-video-thumbnail.jpg';
                         }
-                        
-                        if (isEdit && existingIconPath && 
+
+                        if (isEdit && existingIconPath &&
                             !existingIconPath.includes('i.ytimg.com') &&
                             !isDefaultThumbnail(existingIconPath)) {
                             normalizeAndDeleteOldFile(existingIconPath, baseDir);
                         }
                     } else {
                         iconPath = '/multimedia/thumbnails/default-video-thumbnail.jpg';
-                        
-                        if (isEdit && existingIconPath && 
+
+                        if (isEdit && existingIconPath &&
                             !existingIconPath.includes('i.ytimg.com') &&
                             !isDefaultThumbnail(existingIconPath)) {
                             normalizeAndDeleteOldFile(existingIconPath, baseDir);
                         }
                     }
-                } 
+                }
                 else if (isEdit && existingIconPath) {
                     if (existingIconPath.includes('i.ytimg.com')) {
                         iconPath = existingIconPath;
@@ -507,7 +507,7 @@ exports.handleUpload = async (req, res) => {
                         iconPath = extractRelativePath(existingIconPath);
                     }
                     // console.log('✅ Usando miniatura existente en modo edición:', iconPath);
-                } 
+                }
                 else {
                     if (metadata.includes('youtube.com') || metadata.includes('youtu.be')) {
                         const videoIdMatch = metadata.match(/[?&]v=([^&]+)/) || metadata.match(/youtu\.be\/([^?]+)/);
@@ -521,7 +521,7 @@ exports.handleUpload = async (req, res) => {
                     }
                     // console.log('⚠️ Usando miniatura por defecto:', iconPath);
                 }
-            
+
                 break;
         }
 
@@ -531,10 +531,10 @@ exports.handleUpload = async (req, res) => {
         if (req.body.type !== 'Juegos' && cleanedMetadata && !cleanedMetadata.includes('youtube.com') && !cleanedMetadata.includes('youtu.be')) {
             normalizedMetadata = extractRelativePath(cleanedMetadata);
         }
-        
+
         let normalizedIconPath = iconPath || '';
-    
-        
+
+
         if (req.body.type === 'Videos') {
             if (iconPath) {
                 if (iconPath.includes('i.ytimg.com')) {
@@ -568,7 +568,7 @@ exports.handleUpload = async (req, res) => {
 
         // console.log('🔍 DEBUG - Después de normalización final:');
         // console.log('  - normalizedIconPath:', normalizedIconPath);
-        
+
         if (req.body.type === 'Videos' && (!normalizedIconPath || normalizedIconPath.trim() === '')) {
             console.error('❌ ERROR: iconPath está vacío para un video');
             return res.status(400).json({
@@ -576,7 +576,7 @@ exports.handleUpload = async (req, res) => {
                 detalle: 'No se puede guardar un video sin miniatura'
             });
         }
-        
+
         if (req.body.type !== 'Videos') {
             normalizedIconPath = normalizedIconPath || '';
         }
@@ -627,7 +627,7 @@ exports.handleUpload = async (req, res) => {
                     }
                 );
             });
-            
+
         } else {
             dbResult = await new Promise((resolve, reject) => {
                 req.db.query(
@@ -686,51 +686,51 @@ exports.handleUpload = async (req, res) => {
 
 function cleanMetadata(value) {
     if (!value || typeof value !== 'string') return value;
-    
+
     const angularSecurityPattern = /\s*\(see\s+https?:\/\/[^\)]+\)/gi;
     let cleaned = value.replace(angularSecurityPattern, '');
-    
+
     cleaned = cleaned.trim();
-    
+
     return cleaned;
 }
 
 function extractRelativePath(fullPath) {
     if (!fullPath) return '';
-    
-        if (fullPath.includes('http://') || fullPath.includes('https://')) {
+
+    if (fullPath.includes('http://') || fullPath.includes('https://')) {
         const filesStaticMatch = fullPath.match(/\/FILES\/static\/multimedia\/.*/);
         if (filesStaticMatch) {
             return filesStaticMatch[0].replace('/FILES/static', '');
         }
-        
+
         const staticMatch = fullPath.match(/\/static\/multimedia\/.*/);
         if (staticMatch) {
             return staticMatch[0].replace('/static', '');
         }
-        
+
         const multimediaMatch = fullPath.match(/\/multimedia\/.*/);
         if (multimediaMatch) {
             return multimediaMatch[0];
         }
     }
-    
+
     const multimediaMatch = fullPath.match(/[\/\\]multimedia[\/\\].*/);
     if (multimediaMatch) {
         return multimediaMatch[0].replace(/\\/g, '/');
     }
-    
+
     if (fullPath.includes('multimedia')) {
         const parts = fullPath.split(/[\/\\]multimedia[\/\\]/);
         if (parts.length > 1) {
             return '/multimedia/' + parts[1].replace(/\\/g, '/');
         }
     }
-    
+
     if (fullPath.startsWith('/')) {
         return fullPath;
     }
-    
+
     return '/' + fullPath;
 }
 
@@ -742,9 +742,9 @@ function isDefaultThumbnail(thumbnailPath) {
     const normalized = extractRelativePath(thumbnailPath);
     if (!normalized) return false;
     const norm = normalized.toLowerCase();
-    return norm.includes('default-video-thumbnail.jpg') || 
-           norm.endsWith('/default-video-thumbnail.jpg') ||
-           norm === '/multimedia/thumbnails/default-video-thumbnail.jpg';
+    return norm.includes('default-video-thumbnail.jpg') ||
+        norm.endsWith('/default-video-thumbnail.jpg') ||
+        norm === '/multimedia/thumbnails/default-video-thumbnail.jpg';
 }
 
 function normalizeAndDeleteOldFile(oldPath, baseDir) {
@@ -761,15 +761,15 @@ function normalizeAndDeleteOldFile(oldPath, baseDir) {
         // console.log('⚠️ Intento de eliminar archivo por defecto bloqueado por basename:', oldPath);
         return;
     }
-    
+
     const normalizedPath = extractRelativePath(oldPath);
 
     const fullPath = path.join(baseDir, normalizedPath);
-    
+
     if (fs.existsSync(fullPath)) {
         const resolvedPath = path.resolve(fullPath);
         const resolvedBase = path.resolve(baseDir);
-        
+
         if (resolvedPath.startsWith(resolvedBase)) {
             fs.unlink(fullPath, (err) => {
                 if (err) {
@@ -785,7 +785,7 @@ function normalizeAndDeleteOldFile(oldPath, baseDir) {
 exports.handleDelete = async (req, res) => {
     try {
         const multimediaId = parseInt(req.query.id);
-        
+
         if (!multimediaId || isNaN(multimediaId)) {
             return res.status(400).json({
                 error: 'ID de multimedia requerido',
@@ -815,15 +815,15 @@ exports.handleDelete = async (req, res) => {
         const videoPath = multimediaInfo.MUL_ENLACE || '';
         const thumbnailPath = multimediaInfo.MUL_IMAGEN || '';
 
-        const isVideoFile = videoPath && 
-                           !videoPath.includes('youtube.com') && 
-                           !videoPath.includes('youtu.be') &&
-                           (videoPath.includes('/multimedia/') || videoPath.startsWith('/'));
+        const isVideoFile = videoPath &&
+            !videoPath.includes('youtube.com') &&
+            !videoPath.includes('youtu.be') &&
+            (videoPath.includes('/multimedia/') || videoPath.startsWith('/'));
 
-        const hasServerThumbnail = thumbnailPath && 
-                                  !thumbnailPath.includes('i.ytimg.com') && 
-                                  !isDefaultThumbnail(thumbnailPath) &&
-                                  (thumbnailPath.includes('/multimedia/') || thumbnailPath.startsWith('/'));
+        const hasServerThumbnail = thumbnailPath &&
+            !thumbnailPath.includes('i.ytimg.com') &&
+            !isDefaultThumbnail(thumbnailPath) &&
+            (thumbnailPath.includes('/multimedia/') || thumbnailPath.startsWith('/'));
 
         if (isVideoFile) {
             const normalizedVideoPath = extractRelativePath(videoPath);
@@ -832,7 +832,7 @@ exports.handleDelete = async (req, res) => {
                 if (fs.existsSync(fullVideoPath)) {
                     const resolvedPath = path.resolve(fullVideoPath);
                     const resolvedBase = path.resolve(baseDir);
-                    
+
                     if (resolvedPath.startsWith(resolvedBase)) {
                         fs.unlink(fullVideoPath, (err) => {
                             if (err) {
@@ -855,7 +855,7 @@ exports.handleDelete = async (req, res) => {
                 if (fs.existsSync(fullThumbnailPath)) {
                     const resolvedPath = path.resolve(fullThumbnailPath);
                     const resolvedBase = path.resolve(baseDir);
-                    
+
                     if (resolvedPath.startsWith(resolvedBase)) {
                         fs.unlink(fullThumbnailPath, (err) => {
                             if (err) {
