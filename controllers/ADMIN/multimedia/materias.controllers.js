@@ -22,7 +22,7 @@ exports.addMateria = async (req, res) => {
         }
 
         const query = 'INSERT INTO CAS_MATERIA (MAT_NOMBRE, MAT_DESCRIPCION, MAT_GRA_ID, MAT_STATUS) VALUES (?, ?, ?, ?)';
-        const values = [MAT_NOMBRE, MAT_DESCRIPCION || '', MAT_GRA_ID, MAT_STATUS !== undefined ? MAT_STATUS : 1];
+        const values = [MAT_NOMBRE, MAT_DESCRIPCION || '', MAT_GRA_ID, 1];
 
         req.db.query(query, values, (error, results) => {
             if (error) {

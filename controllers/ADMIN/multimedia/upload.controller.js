@@ -528,7 +528,14 @@ exports.handleUpload = async (req, res) => {
         let cleanedMetadata = cleanMetadata(metadata);
         let normalizedMetadata = cleanedMetadata;
 
-        if (req.body.type !== 'Juegos' && cleanedMetadata && !cleanedMetadata.includes('youtube.com') && !cleanedMetadata.includes('youtu.be')) {
+        const isHttpMetadata = /^https?:\/\//i.test(cleanedMetadata);
+        if (
+            req.body.type !== 'Juegos' &&
+            cleanedMetadata &&
+            !isHttpMetadata &&
+            !cleanedMetadata.includes('youtube.com') &&
+            !cleanedMetadata.includes('youtu.be')
+        ) {
             normalizedMetadata = extractRelativePath(cleanedMetadata);
         }
 
