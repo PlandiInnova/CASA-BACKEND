@@ -25,6 +25,7 @@ const { getLicenciasCompletas } = require('../controllers/ventas/licencia/licenc
 const { updateLicenciaStatus } = require('../controllers/ventas/licencia/updateLicenciaStatus.controller');
 const { getLicenciasDistribucion } = require('../controllers/ventas/licencia/licenciasDistribucion.controller');
 const { getPedidosCompletos } = require('../controllers/ventas/pedido/pedidosCompletos.controller');
+const materiasController = require('../controllers/ADMIN/multimedia/materias.controllers');
 
 module.exports = () => {
 
@@ -54,6 +55,8 @@ module.exports = () => {
     router.get('/update-status', updateStatus);
 
     router.get('/productos', getProductos);
+    router.get('/materias', materiasController.getTodasMaterias);
+    router.post('/materias', materiasController.addMateria);
 
     
     router.get('/productos/archivos', (req, res) => {
