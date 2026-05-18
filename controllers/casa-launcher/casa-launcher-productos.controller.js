@@ -64,14 +64,16 @@ exports.getProductos = (req, res) => {
             const placeholders = idsArray.map(() => '?').join(',');
             const queryProductos = `
                 SELECT 
-                    PRO_ID AS id,
-                    PRO_NOMBRE AS nombre,
-                    PRO_GRA_ID AS graId,
-                    PRO_EXE AS exe,
-                    PRO_IMAGEN AS imagen,
-                    PRO_TIPO AS tipo,
-                    PRO_FILES AS files,
-                    PRO_VERSION AS version
+                    PRO_ID AS PRO_ID,
+                    PRO_NOMBRE AS PRO_NOMBRE,
+                    PRO_NOMBRE_DETALLADO AS PRO_NOMBRE_DETALLADO,
+                    PRO_DESCRIPCION AS PRO_DESCRIPCION,
+                    PRO_GRA_ID AS PRO_GRA_ID,
+                    PRO_EXE AS PRO_EXE,
+                    PRO_IMAGEN AS PRO_IMAGEN,
+                    PRO_TIPO AS PRO_TIPO,
+                    PRO_FILES AS PRO_FILES,
+                    PRO_VERSION AS PRO_VERSION
                 FROM CAS_PRODUCTOS
                 WHERE PRO_ID IN (${placeholders})
                 ORDER BY PRO_NOMBRE
