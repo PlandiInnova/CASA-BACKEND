@@ -8,6 +8,7 @@ exports.getMultimedia = async (req, res) => {
 
         const grado = req.query.grado ? parseInt(req.query.grado) : null;
         const subtipo = req.query.subtipo ? parseInt(req.query.subtipo) : null;
+        const materia = req.query.materia ? parseInt(req.query.materia) : null;
 
         if (req.query.grado && isNaN(grado)) {
             return res.status(400).json({ error: 'Parámetro grado inválido' });
@@ -16,9 +17,13 @@ exports.getMultimedia = async (req, res) => {
             return res.status(400).json({ error: 'Parámetro subtipo inválido' });
         }
 
+        if (req.query.materia && isNaN(materia)) {
+            return res.status(400).json({ error: 'Parámetro materia inválido' });
+        }
+
         req.db.query(
-            'CALL ObtenerMultimedia(?, ?, ?)',
-            [tipo, grado, subtipo],
+            'CALL ObtenerMultimedia(?, ?, ?, ?)',
+            [tipo, grado, subtipo, materia],
             (error, results) => {
                 if (error) {
                     console.error('Error en la consulta:', error);
