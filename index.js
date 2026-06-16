@@ -48,11 +48,7 @@ process.on('warning', (warning) => {
 
 const app = express();
 
-// --- Panel de Monitoreo en Tiempo Real ---
-// Activa el panel en la ruta /status
-app.use(require('express-status-monitor')());
-
-app.set('trust proxy', 1);
+app.set('trust proxy', '192.168.100.100');
 
 const server = http.createServer(app);
 
