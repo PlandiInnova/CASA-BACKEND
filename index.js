@@ -48,7 +48,7 @@ process.on('warning', (warning) => {
 
 const app = express();
 
-app.set('trust proxy', '192.168.100.100');
+app.set('trust proxy', 1);
 
 const server = http.createServer(app);
 
