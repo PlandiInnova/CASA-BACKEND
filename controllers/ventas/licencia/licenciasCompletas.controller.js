@@ -7,6 +7,17 @@
  * GET /licencias-completas -> [{ id, licencia, indicio, fechaInicio, fechaFin, tipoVentaNombre, paqueteNombre, pedidoInfo, usuarioNombre, ... }, ...]
  */
 exports.getLicenciasCompletas = (req, res) => {
+    const { tipo } = req.query;
+    let whereClause = '';
+    let params = [];
+
+    if (tipo) {
+        whereClause = 'WHERE l.LIC_TIPO = ?';
+        params.push(tipo);
+    }
+
+    const limit = 5000;
+
     req.db.query(
         `SELECT 
             l.LIC_ID AS id,
@@ -34,8 +45,10 @@ exports.getLicenciasCompletas = (req, res) => {
         LEFT JOIN CAS_VENTA v ON l.LIC_VEN_ID = v.VEN_ID
         LEFT JOIN CAS_PAQUETE paq ON l.LIC_PAQ_ID = paq.PAQ_ID
         LEFT JOIN CAS_PEDIDO ped ON l.LIC_PDD_ID = ped.PDD_ID
-        ORDER BY l.LIC_ID DESC`,
-        [],
+        ${whereClause}
+        ORDER BY l.LIC_ID DESC
+        LIMIT ${limit}`,
+        params,
         (error, rows) => {
             if (error) {
                 console.error('Error al obtener licencias completas:', error);

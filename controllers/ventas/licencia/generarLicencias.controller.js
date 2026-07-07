@@ -381,6 +381,9 @@ exports.generarLicencias = (req, res) => {
             const licenciasGeneradas = [];
             let offset = 0;
             let errorGlobal = null;
+            
+            // Calculamos un tamaño de lote dinámico para tener aprox. 100 actualizaciones (1% por avance)
+            const dynamicLote = Math.max(1, Math.min(TAMANO_LOTE, Math.ceil(cantidad / 100)));
 
             if (emitProgress) {
                 req.io.to(roomId).emit('licencias-inicio', {
@@ -459,7 +462,7 @@ exports.generarLicencias = (req, res) => {
                     return;
                 }
 
-                const lote = Math.min(TAMANO_LOTE, cantidad - offset);
+                const lote = Math.min(dynamicLote, cantidad - offset);
                 params[11] = lote;
 
                 req.db.query(sqlCall, params, (error, results) => {
