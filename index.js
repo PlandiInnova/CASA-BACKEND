@@ -183,8 +183,13 @@ if (fs.existsSync(folderPath)) {
     console.error('[ERROR] La carpeta NO existe. Revisa la ruta o los permisos.');
 }
 
+// Los paneles de administrador y ventas exigen sesión: sin token válido, ni una
+// sola ruta de /casa/admin/ responde. El portal docente y el launcher no pasan
+// por aquí, tienen su propia autenticación.
+const verificarPanel = require('./middlewares/panelAuthMiddleware');
+
 const admin = require('./routes/routes-admin');
-app.use('/casa/admin/', dbMiddleware, admin());
+app.use('/casa/admin/', dbMiddleware, verificarPanel(), admin());
 
 const login = require('./routes/routes-login');
 app.use('/casa/login/', dbMiddleware, login());

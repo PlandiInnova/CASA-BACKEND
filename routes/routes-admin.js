@@ -24,6 +24,7 @@ const { generarLicencias } = require('../controllers/ventas/licencia/generarLice
 const { getLicenciasCompletas } = require('../controllers/ventas/licencia/licenciasCompletas.controller');
 const { updateLicenciaStatus } = require('../controllers/ventas/licencia/updateLicenciaStatus.controller');
 const { getLicenciasDistribucion } = require('../controllers/ventas/licencia/licenciasDistribucion.controller');
+const { getSubsistemasDisponibles } = require('../controllers/ventas/licencia/subsistemasDisponibles.controller');
 const { exportarLicencias } = require('../controllers/ventas/licencia/exportarLicencias.controller');
 const { getPedidosCompletos } = require('../controllers/ventas/pedido/pedidosCompletos.controller');
 const { getPlantillaLicenciaPedido } = require('../controllers/ventas/pedido/plantillaLicenciaPedido.controller');
@@ -46,6 +47,8 @@ module.exports = () => {
     router.post('/licencias', generarLicencias);
     router.get('/licencias-completas', getLicenciasCompletas);
     router.get('/licencias-distribucion', getLicenciasDistribucion);
+    // Subsistemas que el formulario puede ofrecer, según el contenido del paquete.
+    router.get('/subsistemas-disponibles', getSubsistemasDisponibles);
     // Antes de '/licencias/:id/status' no hay conflicto, pero mantenerla arriba evita
     // que una futura ruta con parámetro capture 'exportar'.
     router.get('/licencias/exportar', exportarLicencias);

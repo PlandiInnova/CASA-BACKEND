@@ -673,9 +673,28 @@ exports.handleUpload = async (req, res) => {
             icon: normalizedIconPath
         };
 
+        // El aviso lo manda el servidor, no el navegador que subió.
+        //
+        // Antes el front recibía el 201 y emitía 'client-upload-complete' para
+        // que el servidor lo reenviara. Si su petición se cortaba, el archivo
+        // quedaba guardado pero nadie se enteraba: ni él ni los demás usuarios
+        // con el panel abierto. Emitiéndolo aquí, el aviso no depende de que el
+        // cliente siga conectado.
+        if (req.io) {
+            req.io.to('global-room').emit('new-upload', responseData);
+        }
+
         if (!res.headersSent) {
             if (res.socket && !res.socket.destroyed) {
                 res.status(201).json(responseData);
+            } else {
+                // El cliente se desconectó a media subida. El registro ya quedó
+                // guardado, así que se deja constancia: sin esto la operación
+                // desaparecía del log sin dejar rastro de por qué.
+                console.warn(
+                    `[UPLOAD] Cliente desconectado antes de responder. ` +
+                    `Registro ${responseData.operation} id=${responseData.id} guardado correctamente.`
+                );
             }
         }
 

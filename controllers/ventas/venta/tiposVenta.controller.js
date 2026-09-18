@@ -4,7 +4,9 @@
  */
 exports.getTiposVenta = (req, res) => {
     req.db.query(
-        'SELECT VEN_ID AS id, VEN_NOMBRE AS nombre, VEN_TIPO AS tipo FROM CAS_VENTA ORDER BY VEN_ID',
+        // DESC: alimenta el select del modal de licencias y lo más reciente es
+        // lo que se busca casi siempre, así que va arriba.
+        'SELECT VEN_ID AS id, VEN_NOMBRE AS nombre, VEN_TIPO AS tipo FROM CAS_VENTA ORDER BY VEN_ID DESC',
         [],
         (error, rows) => {
             if (error) {

@@ -264,6 +264,10 @@ function aListaDeTextos(concatenado, separador) {
 /**
  * Semestres y subsistemas de una materia, agregados desde CAS_GRADO_MATERIA.
  * Va como subconsultas para no multiplicar filas contra los conteos de uso.
+ *
+ * OJO: aquí no puede aparecer un '?' literal, ni entre comillas. El driver mysql
+ * sustituye los parámetros con un reemplazo de texto que no respeta las cadenas,
+ * así que se comería el valor del WHERE de leerMateria y la consulta fallaría.
  */
 const SQL_AGREGADOS = `
     (SELECT GROUP_CONCAT(g.GRA_ID ORDER BY s.SUB_NOMBRE, g.GRA_NUMERO)
@@ -271,7 +275,7 @@ const SQL_AGREGADOS = `
        JOIN CAS_GRADO g       ON g.GRA_ID = gm.GMA_GRA_ID
        LEFT JOIN CAS_SUBSISTEMA s ON s.SUB_ID = g.GRA_SUB_ID
       WHERE gm.GMA_MAT_ID = m.MAT_ID)                       AS GRADOS_IDS,
-    (SELECT GROUP_CONCAT(CONCAT(COALESCE(s.SUB_NOMBRE, '?'), '-', g.GRA_NUMERO, ' ',
+    (SELECT GROUP_CONCAT(CONCAT(COALESCE(s.SUB_NOMBRE, 'Sin subsistema'), '-', g.GRA_NUMERO, ' ',
                                 COALESCE(g.GRA_NOMBRE, 'Semestre'))
                          ORDER BY s.SUB_NOMBRE, g.GRA_NUMERO
                          SEPARATOR '${SEP_ETIQUETAS}')

@@ -33,7 +33,9 @@ exports.getGradosFilter = async (req, res) => {
 
 exports.getSubtipoFilter = async (req, res) => {
     try {
-        req.db.query('SELECT * FROM CAS_SUBTIPOS',
+        // Solo los activos: Solucionarios se fusionó en Evaluación y quedó con
+        // SBT_STATUS = 0 para no perder de vista de dónde venía su contenido.
+        req.db.query('SELECT * FROM CAS_SUBTIPOS WHERE SBT_STATUS = 1 ORDER BY SBT_ID',
             (error, results) => {
                 if (error) {
                     console.error('Error en la consulta:', error);
