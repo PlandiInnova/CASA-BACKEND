@@ -35,21 +35,24 @@ function esCatalogoCompleto(tipo) {
     return TIPOS_CATALOGO_COMPLETO.includes(String(tipo ?? '').trim().toUpperCase());
 }
 
-/** Une los PRO_ID de los paquetes de todas las licencias del usuario. */
-function idsDeProductos(rows) {
+/** Une los ids de una columna que guarda un array JSON. */
+function idsDeColumnaJson(rows, columna) {
     const ids = new Set();
     for (const row of rows || []) {
-        if (!row.PAQ_PRODUCTOS) continue;
+        if (!row[columna]) continue;
         try {
-            const parsed = JSON.parse(row.PAQ_PRODUCTOS);
-            if (Array.isArray(parsed)) {
-                parsed.forEach((id) => ids.add(Number(id)));
-            }
+            const parsed = JSON.parse(row[columna]);
+            if (Array.isArray(parsed)) parsed.forEach((id) => ids.add(Number(id)));
         } catch (e) {
-            console.warn('[CASA-LAUNCHER PRODUCTOS] PAQ_PRODUCTOS no es JSON válido:', row.PAQ_PRODUCTOS);
+            console.warn(`[CASA-LAUNCHER PRODUCTOS] ${columna} no es JSON válido:`, row[columna]);
         }
     }
     return [...ids];
+}
+
+/** Une los PRO_ID de los paquetes de todas las licencias del usuario. */
+function idsDeProductos(rows) {
+    return idsDeColumnaJson(rows, 'PAQ_PRODUCTOS');
 }
 
 /** Los tipos que hoy sabe tratar el sistema. Cualquier otro se avisa. */
@@ -69,11 +72,30 @@ const CONSULTAS_CATALOGO = {
     productoMateria: 'SELECT PRO_ID, PRO_MAT_ID FROM CAS_PRODUCTOS WHERE PRO_MAT_ID IS NOT NULL'
 };
 
+/** Los subsistemas que declara la licencia: es lo que acota el menu. */
+const QUERY_SUBSISTEMAS_LICENCIA = `
+    SELECT l.LIC_SUBSISTEMAS AS LIC_SUBSISTEMAS
+    FROM CAS_LICENCIAS_USUARIOS lu
+    INNER JOIN CAS_LICENCIA l ON l.LIC_ID = lu.LUS_LIC_ID AND l.LIC_STATUS = 1
+    WHERE lu.LUS_USU_ID = ?
+`;
+
 /** req.db es el pool: resuelve la conexion solo. */
-function consultar(db, sql) {
+function consultar(db, sql, params) {
     return new Promise((resolve, reject) => {
-        db.query(sql, (err, filas) => (err ? reject(err) : resolve(filas || [])));
+        db.query(sql, params || [], (err, filas) => (err ? reject(err) : resolve(filas || [])));
     });
+}
+
+/** `null` al fallar y no `[]`: el launcher distingue "no se pudo leer" de "no
+ *  declara nada", y solo en el primero deduce el alcance del contenido. */
+function subsistemasDeLicencia(db, userId) {
+    return consultar(db, QUERY_SUBSISTEMAS_LICENCIA, [userId])
+        .then((filas) => idsDeColumnaJson(filas, 'LIC_SUBSISTEMAS'))
+        .catch((err) => {
+            console.error('[CASA-LAUNCHER PRODUCTOS] No se pudo leer LIC_SUBSISTEMAS:', err);
+            return null;
+        });
 }
 
 function catalogoDeReferencia(db) {
@@ -88,13 +110,15 @@ function catalogoDeReferencia(db) {
 
 /** Si el catalogo falla, los productos salen igual con `catalogo: null`: el
  *  launcher lo lee como "sin menu". Nunca se queda sin catalogo por esto. */
-function responder(res, db, alcance, productos) {
-    return catalogoDeReferencia(db)
-        .catch((err) => {
-            console.error('[CASA-LAUNCHER PRODUCTOS] No se pudo leer el catalogo de referencia:', err);
-            return null;
-        })
-        .then((catalogo) => res.json({ success: true, alcance, productos, catalogo }))
+function responder(res, db, alcance, productos, userId) {
+    const catalogo = catalogoDeReferencia(db).catch((err) => {
+        console.error('[CASA-LAUNCHER PRODUCTOS] No se pudo leer el catalogo de referencia:', err);
+        return null;
+    });
+
+    return Promise.all([catalogo, subsistemasDeLicencia(db, userId)])
+        .then(([catalogo, subsistemasLicencia]) =>
+            res.json({ success: true, alcance, productos, catalogo, subsistemasLicencia }))
         .catch((err) => console.error('[CASA-LAUNCHER PRODUCTOS] Error al responder:', err));
 }
 
@@ -152,7 +176,7 @@ exports.getProductos = (req, res) => {
             avisarTiposDesconocidos(usuario, licencias);
 
             if (licencias.length === 0) {
-                return responder(res, req.db, 'NINGUNO', []);
+                return responder(res, req.db, 'NINGUNO', [], userId);
             }
 
             // Gana el alcance mayor: basta una para no resolver paquetes.
@@ -167,13 +191,13 @@ exports.getProductos = (req, res) => {
                     if (err) return errorProductos(res, err);
 
                     console.log(`[CASA-LAUNCHER PRODUCTOS] ${usuario}: catálogo completo, ${(products || []).length} productos`);
-                    return responder(res, req.db, 'TOTAL', products || []);
+                    return responder(res, req.db, 'TOTAL', products || [], userId);
                 });
             }
 
             const idsArray = idsDeProductos(licencias);
             if (idsArray.length === 0) {
-                return responder(res, req.db, 'PAQUETE', []);
+                return responder(res, req.db, 'PAQUETE', [], userId);
             }
 
             const placeholders = idsArray.map(() => '?').join(',');
@@ -188,7 +212,7 @@ exports.getProductos = (req, res) => {
                 if (err) return errorProductos(res, err);
 
                 console.log(`[CASA-LAUNCHER PRODUCTOS] ${usuario}: por paquete, ${(products || []).length} productos`);
-                return responder(res, req.db, 'PAQUETE', products || []);
+                return responder(res, req.db, 'PAQUETE', products || [], userId);
             });
         });
     });
