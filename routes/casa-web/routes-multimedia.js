@@ -13,5 +13,6 @@ module.exports = () => {
     router.post('/mostrarPorTipoMultimedia', multimediaController.allPorTipoMultimedia);
     router.post('/mostrarGradosPorLicencia', multimediaController.allGradosPorLicencia);
     router.post('/mostrarMateriasPorLicenciaGrado', multimediaController.allMateriasPorLicenciaGrado);
+    router.post('/mostrarGradosPorSubsistema', multimediaController.allGradosPorSubsistema);
     return router;
 }

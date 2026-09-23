@@ -219,6 +219,51 @@ exports.allGradosPorLicencia = (req, res) => {
 };
 
 /**
+ * Grados (semestres) activos de un subsistema, con su GRA_ID real.
+ *
+ * GRA_ID es distinto por subsistema aunque el número de semestre (GRA_NUMERO)
+ * se repita entre ellos (p.ej. el "semestre 1" de BGT y el "semestre 1" de BC
+ * son dos filas distintas en CAS_GRADO). La relación grado-materia usa
+ * CAS_GRADO_MATERIA.GMA_GRA_ID, así que el frontend necesita este GRA_ID real
+ * -no el número de semestre- para pedir materias con allMaterias/
+ * allMateriasPorLicenciaGrado.
+ */
+exports.allGradosPorSubsistema = (req, res) => {
+    try {
+        const { subsistemaId } = req.body;
+
+        if (!subsistemaId) {
+            return res.status(400).json({
+                error: 'Falta el parámetro subsistemaId'
+            });
+        }
+
+        const query = `
+            SELECT GRA_ID, GRA_NUMERO, GRA_NOMBRE, GRA_SUB_ID
+            FROM CAS_GRADO
+            WHERE GRA_SUB_ID = ? AND GRA_STATUS = 1
+            ORDER BY GRA_NUMERO`;
+
+        req.db.query(query, [subsistemaId], (error, results) => {
+            if (error) {
+                console.error('Error en la consulta de grados por subsistema:', error);
+                return res.status(500).json({
+                    error: 'Error al obtener los grados',
+                    details: error.message
+                });
+            }
+            res.json(results);
+        });
+    } catch (error) {
+        console.error('Error en la ruta de allGradosPorSubsistema:', error);
+        res.status(500).json({
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+};
+
+/**
  * Materias de un semestre que cubre el paquete de una licencia.
  *
  * Antes era CALL mostrarMateriasPorLicenciaGrado(?,?). Igual que allMaterias,

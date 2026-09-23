@@ -231,6 +231,79 @@ exports.getLicenceUser = (req, res) => {
     }
 };
 
+/**
+ * Devuelve los subsistemas de una licencia.
+ * LIC_SUBSISTEMAS guarda un arreglo JSON de SUB_ID (ej. [1,2,3] o [1]).
+ */
+exports.getSubsistemasLicencia = (req, res) => {
+    try {
+        const { licenciaId } = req.body;
+
+        if (!licenciaId) {
+            return res.status(400).json({
+                error: 'Falta el parámetro licenciaId'
+            });
+        }
+
+        req.db.query(
+            'SELECT LIC_SUBSISTEMAS FROM CAS_LICENCIA WHERE LIC_ID = ?',
+            [licenciaId],
+            (error, results) => {
+                if (error) {
+                    console.error('Error en la consulta de LIC_SUBSISTEMAS:', error);
+                    return res.status(500).json({
+                        error: 'Error al obtener la respuesta',
+                        details: error.message
+                    });
+                }
+
+                const licencia = Array.isArray(results) ? results[0] : null;
+
+                if (!licencia) {
+                    return res.status(404).json({
+                        error: 'Licencia no encontrada'
+                    });
+                }
+
+                let subsistemaIds = [];
+                if (licencia.LIC_SUBSISTEMAS) {
+                    try {
+                        const parsed = JSON.parse(licencia.LIC_SUBSISTEMAS);
+                        subsistemaIds = Array.isArray(parsed) ? parsed : [];
+                    } catch (_) {
+                        subsistemaIds = [];
+                    }
+                }
+
+                if (subsistemaIds.length === 0) {
+                    return res.json([]);
+                }
+
+                req.db.query(
+                    `SELECT SUB_ID, SUB_NOMBRE FROM CAS_SUBSISTEMA WHERE SUB_ID IN (${subsistemaIds.map(() => '?').join(',')}) ORDER BY SUB_ID`,
+                    subsistemaIds,
+                    (error2, subsistemas) => {
+                        if (error2) {
+                            console.error('Error en la consulta de CAS_SUBSISTEMA:', error2);
+                            return res.status(500).json({
+                                error: 'Error al obtener la respuesta',
+                                details: error2.message
+                            });
+                        }
+                        res.json(Array.isArray(subsistemas) ? subsistemas : []);
+                    }
+                );
+            }
+        );
+    } catch (error) {
+        console.error('Error en la ruta de getSubsistemasLicencia:', error);
+        res.status(500).json({
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+};
+
 exports.insertProducts = async (req, res) => {
     try {
         const { usuarioId, licenciaId } = req.body;
