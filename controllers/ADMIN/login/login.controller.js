@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { obtenerSecreto } = require('../../../middlewares/panelAuthMiddleware');
 
 exports.login = async (req, res) => {
     try {
@@ -40,7 +41,19 @@ exports.login = async (req, res) => {
                 const userType = userData.UAD_TIPO;
                 const id_usuario = userData.UAD_ID;
 
-                const JWT_SECRET = process.env.JWT_SECRET || 'tu-secret-key-cambiar-en-produccion';
+                // Mismo secreto que valida panelAuthMiddleware. Si no está
+                // configurado no se emite token: el valor por omisión anterior
+                // estaba en el repositorio y permitía falsificar sesiones.
+                const JWT_SECRET = obtenerSecreto();
+                if (!JWT_SECRET) {
+                    console.error('[LOGIN] Falta la variable de entorno JWT_SECRET');
+                    return res.status(500).json({
+                        success: false,
+                        status: 'ERROR',
+                        message: "Configuración de autenticación no disponible"
+                    });
+                }
+
                 const token = jwt.sign(
                     {
                         userId: userData.UAD_ID,

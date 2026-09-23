@@ -30,9 +30,11 @@
 
 const ExcelJS = require('exceljs');
 const { fetchDistribucion } = require('./licenciasDistribucion.controller');
+const { resolverSubsistemas } = require('./subsistemasLicencia');
 
 const TOPE_MAXIMO = 400000;
 const TAMANO_LOTE = 10000;
+
 
 /** Convierte ISO o cualquier fecha a YYYY-MM-DD para MySQL DATE. */
 function toDateOnly(value) {
@@ -231,8 +233,10 @@ exports.generarLicencias = (req, res) => {
             solicitante,
             uadId,
             sessionId,
-            pedidoId
+            pedidoId,
+            subsistemas
         } = req.body;
+
 
         const roomId = (sessionId && typeof sessionId === 'string' && sessionId.trim()) ? sessionId.trim() : null;
         const emitProgress = roomId && req.io;
@@ -408,6 +412,15 @@ exports.generarLicencias = (req, res) => {
             const licenciasGeneradas = [];
             let offset = 0;
             let errorGlobal = null;
+
+            /**
+             * Se resuelve una sola vez, antes del primer lote: todas las
+             * licencias del lote otorgan el mismo contenido, así que comparten
+             * subsistemas. Si no se pudiera deducir, se generan igual y la
+             * columna queda en NULL: el campo es informativo y no vale la pena
+             * abortar por él.
+             */
+            let subsistemasTexto = null;
             
             // Calculamos un tamaño de lote dinámico para tener aprox. 100 actualizaciones (1% por avance)
             const dynamicLote = Math.max(1, Math.min(TAMANO_LOTE, Math.ceil(cantidad / 100)));
@@ -513,6 +526,25 @@ exports.generarLicencias = (req, res) => {
 
                     offset += lote;
 
+                    // Los subsistemas se escriben aquí y no dentro del
+                    // procedimiento: añadirle un parámetro obligaría a
+                    // recrearlo en cada base, y sp_generar_licencias_batch ya
+                    // devuelve los ids que acaba de insertar. Con eso basta.
+                    const idsDelLote = filas.map((row) => row.id).filter((id) => id != null);
+                    if (subsistemasTexto && idsDelLote.length > 0) {
+                        req.db.query(
+                            'UPDATE CAS_LICENCIA SET LIC_SUBSISTEMAS = ? WHERE LIC_ID IN (?)',
+                            [subsistemasTexto, idsDelLote],
+                            (errSub) => {
+                                if (errSub) {
+                                    // No se aborta la generación: las licencias
+                                    // ya existen y el campo es informativo.
+                                    console.error('Error al guardar LIC_SUBSISTEMAS del lote:', errSub);
+                                }
+                            }
+                        );
+                    }
+
                     if (emitProgress) {
                         const generadas = licenciasGeneradas.length;
                         const porcentaje = cantidad > 0 ? Math.round((100 * generadas) / cantidad) : 100;
@@ -528,7 +560,14 @@ exports.generarLicencias = (req, res) => {
                 });
             };
 
-            ejecutarSiguienteLote();
+            // El subsistema sale del contenido, no del formulario: se deduce
+            // aquí y de ahí lo toma cada lote al escribir LIC_SUBSISTEMAS.
+            // Se cruza lo que marcó el usuario con lo que el contenido tiene:
+            // marcar de más es imposible, y si no marcó nada se guardan todos.
+            resolverSubsistemas(req.db, paqId, subsistemas, (subs) => {
+                subsistemasTexto = subs;
+                ejecutarSiguienteLote();
+            });
             });
         });
     } catch (err) {

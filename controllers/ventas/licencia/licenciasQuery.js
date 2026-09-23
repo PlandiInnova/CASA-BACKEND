@@ -25,6 +25,14 @@ const SELECT_LICENCIAS = `
         l.LIC_STATUS AS status,
         ${STATUS_LABEL_SQL} AS statusLabel,
         l.LIC_TIPO AS tipo,
+        l.LIC_SUBSISTEMAS AS subsistemas,
+        -- Los nombres se resuelven aquí para no obligar al front a cruzar
+        -- '[1,3]' contra el catálogo en cada fila.
+        (SELECT GROUP_CONCAT(s.SUB_NOMBRE ORDER BY s.SUB_ID SEPARATOR ', ')
+           FROM CAS_SUBSISTEMA s
+          WHERE FIND_IN_SET(s.SUB_ID,
+                REPLACE(REPLACE(REPLACE(l.LIC_SUBSISTEMAS, '[', ''), ']', ''), ' ', '')) > 0
+        ) AS subsistemasNombres,
         COALESCE(u.UAD_NOMBRE, 'Sin usuario') AS usuarioNombre,
         l.LIC_UAD_ID AS uadId,
         COALESCE(v.VEN_NOMBRE, 'Sin tipo de venta') AS tipoVentaNombre,

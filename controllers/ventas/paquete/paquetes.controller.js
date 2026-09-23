@@ -5,7 +5,9 @@
  */
 exports.getPaquetes = (req, res) => {
     req.db.query(
-        'SELECT PAQ_ID AS id, PAQ_NOMBRE AS nombre, PAQ_DESCRIPCION AS descripcion, PAQ_PRODUCTOS FROM CAS_PAQUETE ORDER BY PAQ_ID',
+        // DESC: alimenta el select del modal de licencias y lo más reciente es
+        // lo que se busca casi siempre, así que va arriba.
+        'SELECT PAQ_ID AS id, PAQ_NOMBRE AS nombre, PAQ_DESCRIPCION AS descripcion, PAQ_PRODUCTOS FROM CAS_PAQUETE ORDER BY PAQ_ID DESC',
         [],
         (error, rows) => {
             if (error) {
