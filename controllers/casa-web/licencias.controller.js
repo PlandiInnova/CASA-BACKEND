@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
     secure: true,
     auth: {
         user: 'contacto@metabooks.com.mx',
-        pass: 'DyLPcBnbrzFct8jF'
+        pass: 'YRL/uK7D8wm1Sn9'
     }
 });
 
