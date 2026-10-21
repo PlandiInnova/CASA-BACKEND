@@ -1,45 +1,12 @@
 const jwt = require('jsonwebtoken');
 
-/**
- * Autenticación de los paneles internos: administrador y ventas.
- *
- * Protege /casa/admin/*, que hasta ahora estaba abierto: cualquiera que
- * conociera la URL podía leer licencias y borrar materias sin credencial.
- *
- * No aplica al portal docente (/casa/licencias, /casa/multimedia) ni al
- * launcher, que se autentican por su cuenta y tienen su propio middleware.
- *
- * El token lo emite LOGIN_USUARIO_ADMIN a través de login.controller.js, con
- * este contenido: { userId, username, userType }.
- */
-
-/** Únicos valores de UAD_TIPO que pueden entrar a los paneles. */
 const ROLES_PANEL = ['admin', 'ventas'];
 
-/**
- * Secreto de firma. Devuelve null si no está configurado.
- *
- * Antes se usaba `process.env.JWT_SECRET || 'tu-secret-key-...'`. Ese valor por
- * omisión está en el repositorio, así que cualquiera podía firmar un token
- * válido. Sin secreto configurado no se firma ni se valida nada: es preferible
- * que el login falle de forma visible a que acepte tokens falsificables.
- */
 function obtenerSecreto() {
     const secreto = process.env.JWT_SECRET;
     return secreto && secreto.trim() !== '' ? secreto : null;
 }
 
-/**
- * Saca el token de la petición.
- *
- * Lo normal es la cabecera `Authorization: Bearer <token>`. El parámetro
- * `?token=` existe solo para las descargas: la exportación de licencias apunta
- * el navegador al endpoint con un <a href>, y una navegación no puede llevar
- * cabeceras propias.
- *
- * Un token en la URL puede quedar registrado en los logs del proxy, así que se
- * acepta únicamente como último recurso.
- */
 function extraerToken(req) {
     const cabecera = req.headers['authorization'] || req.headers['Authorization'];
     if (cabecera && cabecera.startsWith('Bearer ')) {
@@ -54,16 +21,6 @@ function extraerToken(req) {
     return null;
 }
 
-/**
- * Middleware de acceso a los paneles.
- *
- *   verificarPanel()          -> admin y ventas
- *   verificarPanel('admin')   -> solo administrador
- *   verificarPanel('ventas')  -> solo ventas
- *
- * Deja el usuario del token en req.usuarioPanel para que los controladores
- * puedan saber quién hizo la petición sin volver a leerlo.
- */
 function verificarPanel(...roles) {
     const permitidos = (roles.length ? roles : ROLES_PANEL).map((r) => String(r).toLowerCase());
 
